@@ -5,51 +5,6 @@ services:
 # verify installation:
 # docker --version
 
-# ----------- real time data ----------------#
-  kafka:
-    image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka
-    ports:
-      - "9092:9092"
-      - "9093:9093"
-    environment:
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:19092,EXTERNAL://159.65.41.22:9092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      CLUSTER_ID: "CQdFOKLdQ8Si0WWDeEUgGg"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_MIN_INSYNC_REPLICAS: 1
-      KAFKA_BROKER_ID: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-      KAFKA_LOG_RETENTION_HOURS: 1           # keep messages for 1 hour
-      KAFKA_LOG_SEGMENT_BYTES: 604857600     # 600 MB per segment
-      KAFKA_LOG_RETENTION_BYTES: 1804857600  # 1.8GB max total
-      KAFKA_DELETE_TOPIC_ENABLE: "true"       # allow deleting topics
-
-    volumes:
-      - kafka-data:/var/lib/kafka/data       # <-- persist Kafka
-    restart: unless-stopped
-
-    healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
 # ----------- data storage ----------------#
 
   clickhouse:
@@ -280,17 +235,15 @@ services:
         max-size: "50m"
         max-file: "3"
 
-# ----------- data pipeline ----------------#
-  pipeline:
+# ----------- main application ----------------#
+  main_app:
     build: .
-    container_name: pipeline
+    container_name: main_app
     env_file:
       - .env
     ports:
       - "8001:8001"
     depends_on:
-      kafka:
-        condition: service_healthy
       clickhouse:
         condition: service_started
     volumes:
@@ -308,5 +261,4 @@ services:
 volumes:
   clickhouse_data:
   grafana-data:
-  kafka-data:
   prometheus-data:

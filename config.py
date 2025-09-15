@@ -3,11 +3,7 @@
 
 import os
 
-# KAFKA_BOOTSTRAP_SERVER = "kafka:9092" #local development
-KAFKA_BOOTSTRAP_SERVER="kafka:19092" #DNS development
-
-API_KEY = os.getenv("FINNHUB_API_KEY")
-SYMBOL = 'BINANCE:ETHUSDT'
+KAFKA_BOOTSTRAP_SERVER="159.65.41.22:9092"
 
 CLICKHOUSE_DURATION = (60 * 60 * 23)  # how old data can be in Clickhouse before it will be moved to a parquet (seconds)
 ARCHIVE_FREQUENCY = (60 * 60 * 1)  # how often we check for old data to move to parquet and upload to cloud (seconds)

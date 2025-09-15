@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def new_client():
     return clickhouse_connect.get_client(
-        host="clickhouse", 
+        host="clickhouse", #clickhouse for docker, localhost for local dev 
         port=8123,
         username="default",
         password="mysecurepassword",
@@ -32,7 +32,7 @@ def create_ticks_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(timestamp)
     ORDER BY timestamp_ms
-    TTL timestamp + INTERVAL 1 DAY DELETE
+    TTL toDateTime(timestamp) + INTERVAL 1 DAY DELETE
     ''')
     logger.info("ticks_db table created successfully.")
 
@@ -52,7 +52,7 @@ def create_diagnostics_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(toDate(diagnostics_timestamp))
     ORDER BY diagnostics_timestamp
-    TTL diagnostics_timestamp + INTERVAL 1 DAY DELETE
+    TTL toDateTime(diagnostics_timestamp) + INTERVAL 1 DAY DELETE
     """)
     logger.info("websocket_diagnostics table created successfully.")
 
@@ -70,7 +70,7 @@ def create_diagnostics_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(toDate(diagnostics_timestamp))
     ORDER BY diagnostics_timestamp
-    TTL diagnostics_timestamp + INTERVAL 1 DAY DELETE
+    TTL toDateTime(diagnostics_timestamp) + INTERVAL 1 DAY DELETE
     """)
     logger.info("processing_diagnostics table created successfully.")
 
@@ -87,7 +87,7 @@ def create_diagnostics_monitoring_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(monitoring_timestamp)
     ORDER BY monitoring_timestamp
-    TTL monitoring_timestamp + INTERVAL 1 DAY DELETE
+    TTL toDateTime(monitoring_timestamp) + INTERVAL 1 DAY DELETE
     ''')
     logger.info("monitoring_db table created successfully.")
 
@@ -104,6 +104,6 @@ def create_uptime_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(uptime_timestamp)
     ORDER BY uptime_timestamp
-    TTL uptime_timestamp + INTERVAL 1 DAY DELETE
+    TTL toDateTime(uptime_timestamp) + INTERVAL 1 DAY DELETE
     ''')
     logger.info("uptime_db table created successfully.")

@@ -32,14 +32,12 @@ def start_consumer(stop_event):
 
     consumer = KafkaConsumer(
         'price_ticks', # subscribe to the topic
-        bootstrap_servers=KAFKA_BOOTSTRAP_SERVER,
-        group_id='ticks_ingestor',
+        bootstrap_servers=[KAFKA_BOOTSTRAP_SERVER],
+        group_id='market_data_storage',
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        enable_auto_commit=True, #auto commit offsets
-        consumer_timeout_ms=1000  # controls how long to wait if no messages
+        enable_auto_commit=False,
+        auto_offset_reset="latest",
     )
-
-
 
     #using batching to improve performance
     batch = []
