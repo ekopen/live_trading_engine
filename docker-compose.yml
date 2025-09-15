@@ -1,0 +1,312 @@
+services:
+
+# install docker first: 
+# curl -fsSL https://get.docker.com | sh
+# verify installation:
+# docker --version
+
+# ----------- real time data ----------------#
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:19092,EXTERNAL://159.65.41.22:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      CLUSTER_ID: "CQdFOKLdQ8Si0WWDeEUgGg"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      KAFKA_LOG_RETENTION_HOURS: 1           # keep messages for 1 hour
+      KAFKA_LOG_SEGMENT_BYTES: 604857600     # 600 MB per segment
+      KAFKA_LOG_RETENTION_BYTES: 1804857600  # 1.8GB max total
+      KAFKA_DELETE_TOPIC_ENABLE: "true"       # allow deleting topics
+
+    volumes:
+      - kafka-data:/var/lib/kafka/data       # <-- persist Kafka
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ----------- data storage ----------------#
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123" #HTTP interface
+      - "9000:9000" # native interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: mysecurepassword
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --query 'SELECT 1' --user=default --password=mysecurepassword || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ----------- visualization ----------------#
+
+  # http://159.65.41.22:3000
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+
+      # === EMBEDDING + ANONYMOUS ACCESS ===
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+
+      # === URL SETTINGS ===
+      # this is for if we do not want to view it on a local, unsecured connection.
+
+      GF_SERVER_DOMAIN: grafana.erickopen.com
+      GF_SERVER_ROOT_URL: https://grafana.erickopen.com/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "false"
+
+      # requires nginx to be installed on the server to view via grafana.erickopen.com
+
+      # INSTALL NGINX
+      # install nginx
+      # sudo apt update
+      # sudo apt install nginx -y
+
+      # CREATE CONFIG
+      # Nginx config
+        # cd /etc/nginx/sites-available
+      # # Redirect HTTP -> HTTPS
+      # server {
+      #     listen 80;
+      #     server_name grafana.erickopen.com;
+      #     return 301 https://$host$request_uri;
+      # }
+      
+      # # HTTPS vhost
+      # server {
+      #     listen 443 ssl http2;
+      #     server_name grafana.erickopen.com;
+      
+      #     # --- Certbot-managed SSL files (these paths are what certbot created) ---
+      #     ssl_certificate     /etc/letsencrypt/live/grafana.erickopen.com/fullchain.pem;
+      #     ssl_certificate_key /etc/letsencrypt/live/grafana.erickopen.com/privkey.pem;
+      #     include             /etc/letsencrypt/options-ssl-nginx.conf;
+      #     ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+      
+      #     # Proxy everything to Grafana on localhost:3000 with WebSocket support
+      #     location / {
+      #         proxy_pass http://localhost:3000;
+      #         proxy_http_version 1.1;
+      
+      #         # ---- WebSocket upgrade headers (required for /api/live/ws) ----
+      #         proxy_set_header Upgrade $http_upgrade;
+      #         proxy_set_header Connection "upgrade";
+      
+      #         # ---- Usual reverse-proxy headers ----
+      #         proxy_set_header Host $host;
+      #         proxy_set_header X-Real-IP $remote_addr;
+      #         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      #         proxy_set_header X-Forwarded-Proto $scheme;
+      
+      #         # (Optional) be generous with timeouts for long-lived websocket streams
+      #         proxy_read_timeout 3600;
+      #         proxy_send_timeout 3600;
+      #     }
+      # }
+
+      # ENABLE NGINX
+      # sudo ln -s /etc/nginx/sites-available/grafana /etc/nginx/sites-enabled/
+      # sudo nginx -t
+      # sudo systemctl reload nginx
+
+      # ADD HTTPS (with Certbot)
+      # sudo apt install certbot python3-certbot-nginx -y
+      # sudo certbot --nginx -d grafana.erickopen.com
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./dashboards:/var/lib/grafana/dashboards
+    restart: unless-stopped
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ----------- logs ----------------#
+
+# collects all logs and ships to loki
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: promtail
+    volumes:
+      - ./log_data:/var/log/pipeline:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+  
+# aggregates all logs
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ----------- monitoring ----------------#
+
+# checks if services are up
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox
+    ports:
+      - "9115:9115"
+    command:
+      - "--config.file=/etc/blackbox/blackbox.yml"
+    volumes:
+      - ./blackbox.yml:/etc/blackbox/blackbox.yml
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # collects information for each continer
+  # will host at http://159.65.41.22:8080/metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # tracks host level metrics
+  # http://159.65.41.22:9100/metrics
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - "9100:9100"
+    restart: unless-stopped    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # scrapes endpoints for metrics/alerts. the central "brain"
+  # http://159.65.41.22:9090/targets
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:                          
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=2d" # keep data for 2 days
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ----------- data pipeline ----------------#
+  pipeline:
+    build: .
+    container_name: pipeline
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_started
+    volumes:
+      - ./log_data:/app/log_data
+    restart: unless-stopped
+    stop_grace_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ----------- log rotation --------- #
+
+volumes:
+  clickhouse_data:
+  grafana-data:
+  kafka-data:
+  prometheus-data:
