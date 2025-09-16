@@ -136,7 +136,7 @@ services:
     image: grafana/promtail:2.9.4
     container_name: promtail
     volumes:
-      - ./log_data:/var/log/pipeline:ro
+      - ./log_data:/var/log/main_app:ro
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
     command: -config.file=/etc/promtail/config.yml
     depends_on:
@@ -153,6 +153,9 @@ services:
     image: grafana/loki:2.9.4
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
     ports:
       - "3100:3100"
     restart: unless-stopped
@@ -262,3 +265,4 @@ volumes:
   clickhouse_data:
   grafana-data:
   prometheus-data:
+  loki-data:

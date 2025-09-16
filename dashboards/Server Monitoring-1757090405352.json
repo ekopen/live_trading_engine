@@ -1047,7 +1047,8 @@
             "type": "prometheus",
             "uid": "${ds_prometheus}"
           },
-          "expr": "max by (instance) (probe_success{instance=~\"$target\"})",
+          "editorMode": "code",
+          "expr": "max by (instance) (probe_success{instance=~\"kafka.*|ws\\\\.finnhub\\\\.io.*\"})",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -1144,11 +1145,13 @@
             "type": "prometheus",
             "uid": "${ds_prometheus}"
           },
-          "expr": "probe_duration_seconds{instance=~\"$target\"}",
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=~\"kafka.*|ws\\\\.finnhub\\\\.io.*\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
           "legendFormat": "{{ instance }}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -1352,5 +1355,5 @@
   "timezone": "",
   "title": "Server Monitoring",
   "uid": "blackbox-uptime",
-  "version": 4
+  "version": 1
 }

@@ -10,12 +10,18 @@ from cloud_migration import migration_to_cloud
 from kafka_consumer import start_consumer
 from monitoring import ticks_monitoring, diagnostics_monitoring
 
+from logging.handlers import RotatingFileHandler
 # logging 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     handlers=[
-        logging.FileHandler("log_data/app.log", encoding="utf-8"),
+        RotatingFileHandler(
+            "log_data/app.log",
+            maxBytes=5 * 1024 * 1024,  # 5 MB per file
+            backupCount=3,
+            encoding="utf-8"
+        ),
         logging.StreamHandler()
     ]
 )

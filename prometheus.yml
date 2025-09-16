@@ -16,7 +16,7 @@ scrape_configs:
       - targets:
           - http://grafana:3000/login   # Grafana login page
           - http://clickhouse:8123/ping # ClickHouse HTTP
-          - http://pipeline:8001/health # Python producer health
+          - http://main_app:8001/health # Python producer health
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
