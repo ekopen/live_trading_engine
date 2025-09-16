@@ -2,8 +2,8 @@
 .env
 /__pycache__
 
-log_data/*
-!log_data/.gitkeep
+/log_data/*
+!/log_data/.gitkeep
 
-parquet_data/*
-!parquet_data/.gitkeep
+/parquet_data/*
+!/parquet_data/.gitkeep
