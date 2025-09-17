@@ -1,10 +1,4 @@
 services:
-
-# install docker first: 
-# curl -fsSL https://get.docker.com | sh
-# verify installation:
-# docker --version
-
 # ----------- data storage ----------------#
 
   clickhouse:
@@ -34,8 +28,6 @@ services:
 
 # ----------- visualization ----------------#
 
-  # http://159.65.41.22:3000
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -55,67 +47,9 @@ services:
       # === URL SETTINGS ===
       # this is for if we do not want to view it on a local, unsecured connection.
 
-      GF_SERVER_DOMAIN: grafana.erickopen.com
-      GF_SERVER_ROOT_URL: https://grafana.erickopen.com/
+      GF_SERVER_DOMAIN: grafana2.erickopen.com
+      GF_SERVER_ROOT_URL: https://grafana2.erickopen.com/
       GF_SERVER_SERVE_FROM_SUB_PATH: "false"
-
-      # requires nginx to be installed on the server to view via grafana.erickopen.com
-
-      # INSTALL NGINX
-      # install nginx
-      # sudo apt update
-      # sudo apt install nginx -y
-
-      # CREATE CONFIG
-      # Nginx config
-        # cd /etc/nginx/sites-available
-      # # Redirect HTTP -> HTTPS
-      # server {
-      #     listen 80;
-      #     server_name grafana.erickopen.com;
-      #     return 301 https://$host$request_uri;
-      # }
-      
-      # # HTTPS vhost
-      # server {
-      #     listen 443 ssl http2;
-      #     server_name grafana.erickopen.com;
-      
-      #     # --- Certbot-managed SSL files (these paths are what certbot created) ---
-      #     ssl_certificate     /etc/letsencrypt/live/grafana.erickopen.com/fullchain.pem;
-      #     ssl_certificate_key /etc/letsencrypt/live/grafana.erickopen.com/privkey.pem;
-      #     include             /etc/letsencrypt/options-ssl-nginx.conf;
-      #     ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
-      
-      #     # Proxy everything to Grafana on localhost:3000 with WebSocket support
-      #     location / {
-      #         proxy_pass http://localhost:3000;
-      #         proxy_http_version 1.1;
-      
-      #         # ---- WebSocket upgrade headers (required for /api/live/ws) ----
-      #         proxy_set_header Upgrade $http_upgrade;
-      #         proxy_set_header Connection "upgrade";
-      
-      #         # ---- Usual reverse-proxy headers ----
-      #         proxy_set_header Host $host;
-      #         proxy_set_header X-Real-IP $remote_addr;
-      #         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      #         proxy_set_header X-Forwarded-Proto $scheme;
-      
-      #         # (Optional) be generous with timeouts for long-lived websocket streams
-      #         proxy_read_timeout 3600;
-      #         proxy_send_timeout 3600;
-      #     }
-      # }
-
-      # ENABLE NGINX
-      # sudo ln -s /etc/nginx/sites-available/grafana /etc/nginx/sites-enabled/
-      # sudo nginx -t
-      # sudo systemctl reload nginx
-
-      # ADD HTTPS (with Certbot)
-      # sudo apt install certbot python3-certbot-nginx -y
-      # sudo certbot --nginx -d grafana.erickopen.com
 
     volumes:
       - grafana-data:/var/lib/grafana
@@ -129,79 +63,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
-# ----------- logs ----------------#
-
-# collects all logs and ships to loki
-  promtail:
-    image: grafana/promtail:2.9.4
-    container_name: promtail
-    volumes:
-      - ./log_data:/var/log/main_app:ro
-      - ./promtail-config.yml:/etc/promtail/config.yml:ro
-    command: -config.file=/etc/promtail/config.yml
-    depends_on:
-      - loki
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-  
-# aggregates all logs
-  loki:
-    image: grafana/loki:2.9.4
-    container_name: loki
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
-      - loki-data:/loki
-    ports:
-      - "3100:3100"
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
 # ----------- monitoring ----------------#
-
-# checks if services are up
-  blackbox:
-    image: prom/blackbox-exporter:latest
-    container_name: blackbox
-    ports:
-      - "9115:9115"
-    command:
-      - "--config.file=/etc/blackbox/blackbox.yml"
-    volumes:
-      - ./blackbox.yml:/etc/blackbox/blackbox.yml
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
-  # collects information for each continer
-  # will host at http://159.65.41.22:8080/metrics
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    ports:
-      - "8080:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
 
   # tracks host level metrics
   # http://159.65.41.22:9100/metrics
