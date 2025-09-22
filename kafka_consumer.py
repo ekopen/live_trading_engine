@@ -42,8 +42,8 @@ def start_consumer(stop_event):
     #using batching to improve performance
     batch = []
     last_flush = time.time()
-    BATCH_SIZE = 150
-    FLUSH_INTERVAL = .25  # seconds
+    BATCH_SIZE = 500
+    FLUSH_INTERVAL = 1  # seconds
 
     try:
         while not stop_event.is_set():
