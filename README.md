@@ -8,7 +8,7 @@ Captures market data from a Kafka consumer and stores it in a ClickHouse databas
 - Creates a Kafka consumer that subscribes to a topic generated in the market_data_stream module, featuring market tick data of multiple currencies.
 - Continuously writes new data from the consumer to a ClickHouse database using batch methodology.
 - Retention in Clickhouse is capped by a time limit for memory and performance optimization. Old data is frequently archived to a parquet and then uploaded to AWS, and then is deleted off local drives and removed from ClickHouse.
-- Metrics such as message ingestion rate, Kafka lag, and websocket lag are frequently recorded and populated in other ClickHouse tables.
+- Metrics such as message ingestion rate, Kafka lag, and websocket lag are frequently recorded and populated in other ClickHouse tables. All metrics are visualized in Grafana.
 - The market data saved in this Clickhouse table is used downstream in other modules, where it is querired to generate logic for algorithims in the trading module.
 
 ## Future Improvements  
