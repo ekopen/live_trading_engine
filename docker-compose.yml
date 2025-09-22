@@ -1,6 +1,5 @@
 services:
 # ----------- data storage ----------------#
-
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     container_name: clickhouse
@@ -45,8 +44,6 @@ services:
       GF_AUTH_DISABLE_LOGIN_FORM: "false"
 
       # === URL SETTINGS ===
-      # this is for if we do not want to view it on a local, unsecured connection.
-
       GF_SERVER_DOMAIN: grafana2.erickopen.com
       GF_SERVER_ROOT_URL: https://grafana2.erickopen.com/
       GF_SERVER_SERVE_FROM_SUB_PATH: "false"
@@ -66,7 +63,6 @@ services:
 # ----------- monitoring ----------------#
 
   # tracks host level metrics
-  # http://159.65.41.22:9100/metrics
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
@@ -80,7 +76,6 @@ services:
         max-file: "3"
 
   # scrapes endpoints for metrics/alerts. the central "brain"
-  # http://159.65.41.22:9090/targets
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -127,4 +122,3 @@ volumes:
   clickhouse_data:
   grafana-data:
   prometheus-data:
-  loki-data:
