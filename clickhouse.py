@@ -1,5 +1,5 @@
 # clickhouse.py
-# creates pricing database
+# creates pricing and diagnostics databases
 
 import clickhouse_connect
 import logging
