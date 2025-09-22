@@ -2,7 +2,7 @@
 This is part of my overarching **Live Trading Engine** project. Visit [www.erickopen.com](http://www.erickopen.com) to see my projects running live and to view comprehensive documentation.  
 
 ## Overview  
-Captures market data from a Kafka consumer (along with ingestion metrics) and stores it in a ClickHouse database, eventually archiving old data to AWS. Downstream applications use this data to generate trading algorithims.
+Captures market data from a Kafka consumer and stores it in a ClickHouse database, eventually archiving old data to AWS. Downstream applications use this data to generate trading algorithims.
 
 ## Details
 - Creates a Kafka consumer that subscribes to a topic generated in the market_data_stream module, featuring market tick data of multiple currencies.
