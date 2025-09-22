@@ -8,6 +8,7 @@ This is part of my overarching **Live Trading Engine** project. Visit [www.erick
 
 ## Future Improvements  
 - Switch from Clickhouse batch insert to Clickhouse Kafka enginer
+- Revisit crash logic, which may not be as necessary now that this is decoupled from Kafka
 
 ## Known Issues  
 
