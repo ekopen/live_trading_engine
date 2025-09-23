@@ -14,9 +14,7 @@ Captures market data from a Kafka consumer and stores it in a ClickHouse databas
 ## Future Improvements  
 - Switch from Clickhouse batch insert to Clickhouse Kafka engine.
 - Revisit crash logic, which may not be as necessary now that this is decoupled from Kafka.
-- Create seperate container for clickhouse deletion/creation/alteration, which can be ran one time.
 - Turn on cloud migration with cost tracking.
-- Remove cloud upload for anything that is not ticks_db
 
 ## Known Issues  
 - Parquets may not be written right now, fix os directory details in cloud migration.

@@ -14,11 +14,17 @@ def new_client():
         database="default"
     )
 
+def delete_tables():
+    ch = new_client()
+    ch.command("DROP TABLE IF EXISTS ticks_db SYNC")
+    ch.command("DROP TABLE IF EXISTS websocket_diagnostics SYNC")
+    ch.command("DROP TABLE IF EXISTS processing_diagnostics SYNC")
+    ch.command("DROP TABLE IF EXISTS monitoring_db SYNC")
+
 def create_ticks_db():
 
     logger.info("Creating ticks_db table.")
     ch = new_client()
-    # ch.command("DROP TABLE IF EXISTS ticks_db SYNC")
     ch.command('''
     CREATE TABLE IF NOT EXISTS ticks_db(
         timestamp       DateTime64(3, 'UTC'),
@@ -32,7 +38,7 @@ def create_ticks_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(timestamp)
     ORDER BY timestamp_ms
-    TTL toDateTime(timestamp) + INTERVAL 1 DAY DELETE
+    TTL toDateTime(timestamp) + INTERVAL 7 DAY DELETE
     ''')
     logger.info("ticks_db table created successfully.")
 
@@ -40,7 +46,6 @@ def create_diagnostics_db():
 
     logger.info("Creating websocket_diagnostics table.")
     ch = new_client()
-    # ch.command("DROP TABLE IF EXISTS websocket_diagnostics SYNC")
     ch.command(f"""
     CREATE TABLE IF NOT EXISTS websocket_diagnostics (
         avg_timestamp Nullable(DateTime64(3, 'UTC')),
@@ -52,12 +57,11 @@ def create_diagnostics_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(toDate(diagnostics_timestamp))
     ORDER BY diagnostics_timestamp
-    TTL toDateTime(diagnostics_timestamp) + INTERVAL 1 DAY DELETE
+    TTL toDateTime(diagnostics_timestamp) + INTERVAL 7 DAY DELETE
     """)
     logger.info("websocket_diagnostics table created successfully.")
 
     logger.info("Creating processing_diagnostics table.")
-    # ch.command("DROP TABLE IF EXISTS processing_diagnostics SYNC")
     ch.command(f"""
     CREATE TABLE IF NOT EXISTS processing_diagnostics (
         avg_timestamp Nullable(DateTime64(3, 'UTC')),
@@ -70,7 +74,7 @@ def create_diagnostics_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(toDate(diagnostics_timestamp))
     ORDER BY diagnostics_timestamp
-    TTL toDateTime(diagnostics_timestamp) + INTERVAL 1 DAY DELETE
+    TTL toDateTime(diagnostics_timestamp) + INTERVAL 7 DAY DELETE
     """)
     logger.info("processing_diagnostics table created successfully.")
 
@@ -78,7 +82,6 @@ def create_diagnostics_monitoring_db():
 
     logger.info("Creating monitoring_db table.")
     ch = new_client()
-    # ch.command("DROP TABLE IF EXISTS monitoring_db SYNC")
     ch.command('''
     CREATE TABLE IF NOT EXISTS monitoring_db(
         monitoring_timestamp     DateTime64(3, 'UTC') DEFAULT now64(3),
@@ -87,23 +90,6 @@ def create_diagnostics_monitoring_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(monitoring_timestamp)
     ORDER BY monitoring_timestamp
-    TTL toDateTime(monitoring_timestamp) + INTERVAL 1 DAY DELETE
+    TTL toDateTime(monitoring_timestamp) + INTERVAL 7 DAY DELETE
     ''')
     logger.info("monitoring_db table created successfully.")
-
-def create_uptime_db():
-
-    logger.info("Creating uptime_db table.")
-    ch = new_client()
-    # ch.command("DROP TABLE IF EXISTS uptime_db SYNC")
-    ch.command('''
-    CREATE TABLE IF NOT EXISTS uptime_db(
-        uptime_timestamp   DateTime64(3, 'UTC'),
-        is_up              UInt8
-    )
-    ENGINE = MergeTree()
-    PARTITION BY toYYYYMMDD(uptime_timestamp)
-    ORDER BY uptime_timestamp
-    TTL toDateTime(uptime_timestamp) + INTERVAL 1 DAY DELETE
-    ''')
-    logger.info("uptime_db table created successfully.")

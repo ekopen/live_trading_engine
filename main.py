@@ -40,9 +40,6 @@ if __name__ == "__main__":
     try:
         logger.info("System starting.")
 
-        # create clickhouse tables
-        create_ticks_db(), create_diagnostics_db(), create_diagnostics_monitoring_db(), create_uptime_db()
-
         ch = new_client()
         ch.insert('monitoring_db',[("System started",)],column_names=['message'])
 

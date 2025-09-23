@@ -108,6 +108,7 @@ services:
         condition: service_started
     volumes:
       - ./log_data:/app/log_data
+      - ./parquet_data:/app/parquet_data
     restart: unless-stopped
     stop_grace_period: 20s
     logging:
@@ -115,6 +116,15 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+
+# ----------- setup ----------------#
+  db_setup:
+    build: .
+    command: ["python", "setup.py"]
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    profiles: ["setup"]
 
 # ----------- log rotation --------- #
 

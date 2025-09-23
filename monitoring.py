@@ -58,16 +58,6 @@ def ticks_monitoring(stop_event,duration):
             ch.insert('processing_diagnostics',
                 [(avg_timestamp, avg_received_at, avg_insert_time, proc_lag, message_count)],
                 column_names=['avg_timestamp', 'avg_received_at', 'avg_processed_timestamp', 'avg_processing_lag', 'message_count'])
-            
-            # ---- update monitoring ----- #
-            is_up = 1 if message_count > 0 else 0
-            ch.insert(
-                'uptime_db',
-                [(current_time, is_up)],
-                column_names=['uptime_timestamp', 'is_up']
-            )
-            if not is_up:
-                logger.warning("No messages received in the last ticks monitoring cycle.")
 
             logger.info(f"Inserted ticks monitoring data for {message_count} messages.")
 
@@ -85,37 +75,6 @@ def diagnostics_monitoring(stop_event,duration,empty_limit, ws_lag_threshold, pr
 
         try:
             logger.debug("Starting monitoring cycle.")
-
-            #--------------------------pipeline down--------------------------#
-            
-            rows = ch.query(f"""
-                SELECT is_up
-                FROM uptime_db
-                ORDER BY uptime_timestamp DESC
-                LIMIT {int(empty_limit)}
-            """).result_rows
-
-            total = sum(r[0] for r in rows) if rows else None
-
-            if total is not None and total == 0 and len(rows) >= empty_limit:
-                logger.warning(
-                    f"Diagnostics has been empty for {empty_limit} consecutive cycles. Restarting system."
-                )
-                ch.insert(
-                    'monitoring_db',
-                    [("System restart",)],
-                    column_names=['message']
-                )
-
-                # this is to prevent a restart loop
-                current_time = datetime.now(timezone.utc)
-                ch.insert(
-                    'uptime_db',
-                    [(current_time, 1)],
-                    column_names=['uptime_timestamp', 'is_up']
-                )
-                
-                stop_event.set()
 
             #--------------------------websocket lag spike--------------------------#
             lag = ch.query(f"""
