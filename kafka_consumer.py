@@ -5,7 +5,7 @@ from config import KAFKA_BOOTSTRAP_SERVER
 from kafka import KafkaConsumer
 import json, time, logging
 from datetime import datetime, timezone
-from clickhouse import new_client
+from setup import new_client
 logger = logging.getLogger(__name__)
 
 # prepares the data for clickhouse

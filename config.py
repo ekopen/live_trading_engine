@@ -1,5 +1,6 @@
 # config.py
 # variables that are used across the project
+import os
 
 KAFKA_BOOTSTRAP_SERVER="159.65.41.22:9092"
 
@@ -7,5 +8,7 @@ CLICKHOUSE_DURATION = (60 * 60 * 24 * 7)  # how old data can be in Clickhouse be
 ARCHIVE_FREQUENCY = (60 * 60 * 24)  # how often we check for old data to move to parquet and upload to cloud (seconds)
 HEARTBEAT_FREQUENCY = 60 # seconds per heartbeat, where we record diagnostics and monitoring data 
 
-WS_LAG_THRESHOLD = 1.5 # amount of websocket lag considered a spike
-PROC_LAG_THRESHOLD = 3 # amount of processing lag considered a spike
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.getenv('AWS_REGION')
+BUCKET_NAME = os.getenv('S3_BUCKET_NAME')

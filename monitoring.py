@@ -1,7 +1,7 @@
 # monitoring.py
 # records notable events and handles crashes
 
-from clickhouse import new_client
+from setup import new_client
 import time, logging
 from datetime import datetime, timezone, timedelta
 import pandas as pd
@@ -63,52 +63,5 @@ def ticks_monitoring(stop_event,duration):
 
         except Exception as e:
             logger.exception(f"Error inserting ticks monitoring data.")
-
-        time.sleep(duration)
-
-def diagnostics_monitoring(stop_event,duration,empty_limit, ws_lag_threshold, proc_lag_threshold):
-
-    time.sleep(duration+1) #delay to allow diagnostics to populate first
-    ch = new_client()
-
-    while not stop_event.is_set():
-
-        try:
-            logger.debug("Starting monitoring cycle.")
-
-            #--------------------------websocket lag spike--------------------------#
-            lag = ch.query(f"""
-                SELECT avg_websocket_lag
-                FROM websocket_diagnostics
-                ORDER BY diagnostics_timestamp DESC
-                LIMIT 1
-            """).result_rows[0][0]
-
-            if lag is not None and (lag > ws_lag_threshold):
-                ch.insert(
-                    'monitoring_db',
-                    [(f"Websocket Lag Spike: {lag}",)],
-                    column_names=['message']
-                )  
-
-            #--------------------------processing lag spike--------------------------#
-            lag = ch.query(f"""
-                SELECT avg_processing_lag
-                FROM processing_diagnostics
-                ORDER BY diagnostics_timestamp DESC
-                LIMIT 1
-            """).result_rows[0][0]
-
-            if lag is not None and (lag > proc_lag_threshold):
-                ch.insert(
-                    'monitoring_db',
-                    [(f"Processing Lag Spike: {lag}",)],
-                    column_names=['message']
-                )                
-
-            logger.info(f"Completed a monitoring cycle.")
-
-        except Exception:
-            logger.exception("insert_monitoring error")
 
         time.sleep(duration)

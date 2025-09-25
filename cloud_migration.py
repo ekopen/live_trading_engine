@@ -1,24 +1,12 @@
 # cloud_migration.py
 # This module handles the migration of old data to cloud/storage
 
-from clickhouse import new_client
+from setup import s3, new_client
+from config import BUCKET_NAME
 import time, os, logging
 from datetime import timedelta, datetime, timezone
 import pandas as pd
-import boto3
 logger = logging.getLogger(__name__)
-
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = os.getenv('AWS_REGION')
-BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
-
-s3 = boto3.client(
-    's3',
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
 
 def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
     
@@ -55,11 +43,11 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
             old_ticks_df.rename(columns={'second': 'timestamp'}, inplace=True)
 
             latest_file = f'{parquet_dir}/ticks.parquet'
-            archive_file_name = f'ticks_{ts}'
-            archive_file_dir = f'{parquet_dir}/{archive_file_name}.parquet'
+            # archive_file_name = f'ticks_{ts}'
+            # archive_file_dir = f'{parquet_dir}/{archive_file_name}.parquet'
             old_ticks_df.to_parquet(latest_file, index=False)
-            old_ticks_df.to_parquet(archive_file_dir, index=False)
-            logger.info(f"Written Parquet files: {latest_file} and {archive_file_dir}")
+            # old_ticks_df.to_parquet(archive_file_dir, index=False)
+            # logger.info(f"Written Parquet files: {latest_file} and {archive_file_dir}")
 
             ch_client.command(f'''
                 ALTER TABLE ticks_db
@@ -69,13 +57,13 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
 
             # -------------------------- cloud upload -------------------------- #
 
-            s3_key = f"archived_data/{archive_file_name}"
+            s3_key = "ticks_data"
             try:
-                # s3.upload_file(file_path, BUCKET_NAME, s3_key)
-                logger.info(f"Uploaded {archive_file_dir} to S3 at {s3_key}")
-                os.remove(archive_file_dir)
+                s3.upload_file(latest_file, BUCKET_NAME, s3_key)
+                logger.info(f"Uploaded {latest_file} to S3 at {s3_key}")
+                # os.remove(archive_file_dir)
             except Exception:
-                logger.exception(f"Error uploading {archive_file_dir} to S3")
+                logger.exception(f"Error uploading to S3")
 
         except Exception:
             logger.exception("Error during migration to cloud")
