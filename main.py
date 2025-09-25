@@ -41,7 +41,6 @@ if __name__ == "__main__":
         logger.info("System starting.")
 
         ch = new_client()
-        ch.insert('monitoring_db',[("System started",)],column_names=['message'])
 
         # start ingesting data from the websocket, feed to kafka, and insert to clickhouse
         consumer_thread = threading.Thread(target=start_consumer, args=(stop_event,))
@@ -53,7 +52,6 @@ if __name__ == "__main__":
         while not stop_event.is_set():
              time.sleep(1)
 
-        ch.insert('monitoring_db',[("System closing",)],column_names=['message'])
         consumer_thread.join(timeout=3)
         logger.info("System shutdown complete.")
 

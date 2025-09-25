@@ -30,6 +30,7 @@ def delete_tables():
     ch.command("DROP TABLE IF EXISTS websocket_diagnostics SYNC")
     ch.command("DROP TABLE IF EXISTS processing_diagnostics SYNC")
     ch.command("DROP TABLE IF EXISTS monitoring_db SYNC")
+    ch.command("DROP TABLE IF EXISTS uptime_db SYNC")
 
 def create_ticks_db():
     ch = new_client()
