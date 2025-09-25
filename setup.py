@@ -81,11 +81,11 @@ def create_diagnostics_db():
     TTL toDateTime(diagnostics_timestamp) + INTERVAL 7 DAY DELETE
     """)
 
-try:
-    logger.info("Deleting tables.")
-    delete_tables()
-except Exception:
-    logger.warning("Error when deleting tables.")
+# try:
+#     logger.info("Deleting tables.")
+#     delete_tables()
+# except Exception:
+#     logger.warning("Error when deleting tables.")
 
 try:
     logger.info("Creating tables.")
