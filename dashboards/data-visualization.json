@@ -46,7 +46,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 12,
         "w": 5,
         "x": 0,
         "y": 0
@@ -160,7 +160,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 12,
         "w": 19,
         "x": 5,
         "y": 0
@@ -200,7 +200,7 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 1) MILLISECOND\r\n  ) AS time,\r\n  avg(price) AS price\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time",
+          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 23) MILLISECOND\r\n  ) AS time,\r\n  avg(price) AS price\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time",
           "refId": "A"
         }
       ],
@@ -215,7 +215,7 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "decimals": 0,
+          "decimals": 2,
           "fieldMinMax": false,
           "mappings": [],
           "thresholds": {
@@ -227,15 +227,15 @@
               }
             ]
           },
-          "unit": "locale"
+          "unit": "sishort"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 5,
         "x": 0,
-        "y": 9
+        "y": 12
       },
       "id": 11,
       "options": {
@@ -349,10 +349,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 10,
         "w": 19,
         "x": 5,
-        "y": 9
+        "y": 12
       },
       "id": 9,
       "options": {
@@ -397,7 +397,7 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 15) MILLISECOND\r\n  ) AS time,\r\n    any(price) AS open,\r\n    anyLast(price) AS close,\r\n    max(price) AS high,\r\n    min(price) AS low\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time\r\n\r\n\r\n",
+          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 23) MILLISECOND\r\n  ) AS time,\r\n    any(price) AS open,\r\n    anyLast(price) AS close,\r\n    max(price) AS high,\r\n    min(price) AS low\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time\r\n\r\n\r\n",
           "refId": "A"
         }
       ],
@@ -429,10 +429,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 7,
         "w": 5,
         "x": 0,
-        "y": 15
+        "y": 19
       },
       "id": 12,
       "options": {
@@ -548,7 +548,7 @@
         "h": 4,
         "w": 19,
         "x": 5,
-        "y": 15
+        "y": 22
       },
       "id": 7,
       "options": {
@@ -585,7 +585,7 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 20) MILLISECOND\r\n  ) AS time,\r\n  sum(volume) as volume\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time\r\n\r\n\r\n",
+          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 25) MILLISECOND\r\n  ) AS time,\r\n  sum(volume) as volume\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time\r\n\r\n\r\n",
           "refId": "A"
         }
       ],
@@ -620,11 +620,11 @@
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s"
+      "60s"
     ]
   },
   "timezone": "browser",
   "title": "Market Data",
   "uid": "37fb53d0-bf32-4e50-b46e-3bf1a868e61e",
-  "version": 2
+  "version": 3
 }

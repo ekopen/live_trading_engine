@@ -55,7 +55,7 @@
       },
       "id": 17,
       "options": {
-        "colorMode": "background",
+        "colorMode": "none",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -131,7 +131,7 @@
       },
       "id": 19,
       "options": {
-        "colorMode": "background",
+        "colorMode": "none",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -209,7 +209,7 @@
       },
       "id": 15,
       "options": {
-        "colorMode": "background",
+        "colorMode": "none",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -274,7 +274,7 @@
               }
             ]
           },
-          "unit": "locale"
+          "unit": "sishort"
         },
         "overrides": []
       },
@@ -286,7 +286,7 @@
       },
       "id": 21,
       "options": {
-        "colorMode": "value",
+        "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -323,7 +323,7 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n    count(timestamp) AS total_rows\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp);\r\n",
+          "rawSql": "SELECT\r\n    count(timestamp) AS total_rows\r\nFROM ticks_db\r\n",
           "refId": "A"
         }
       ],
@@ -444,5 +444,5 @@
   "timezone": "",
   "title": "System Monitoring",
   "uid": "blackbox-uptime",
-  "version": 6
+  "version": 7
 }
