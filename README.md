@@ -13,9 +13,7 @@ Captures market data from a Kafka consumer and stores it in a ClickHouse databas
 
 ## Future Improvements  
 - Switch from Clickhouse batch insert to Clickhouse Kafka engine.
-- Revisit crash logic, which may not be as necessary now that this is decoupled from Kafka.
 - Turn on cloud migration with cost tracking.
 
 ## Known Issues  
-- Parquets may not be written right now, fix os directory details in cloud migration.
-- AWS upload is turned off for price considerations.
+- Cloud upload might be buggy, investigate further.

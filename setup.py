@@ -29,8 +29,6 @@ def delete_tables():
     ch.command("DROP TABLE IF EXISTS ticks_db SYNC")
     ch.command("DROP TABLE IF EXISTS websocket_diagnostics SYNC")
     ch.command("DROP TABLE IF EXISTS processing_diagnostics SYNC")
-    # ch.command("DROP TABLE IF EXISTS monitoring_db SYNC")
-    # ch.command("DROP TABLE IF EXISTS uptime_db SYNC")
 
 def create_ticks_db():
     ch = new_client()
@@ -47,7 +45,7 @@ def create_ticks_db():
     ENGINE = MergeTree()
     PARTITION BY toYYYYMMDD(timestamp)
     ORDER BY timestamp_ms
-    TTL toDateTime(timestamp) + INTERVAL 7 DAY DELETE
+    TTL toDateTime(timestamp) + INTERVAL 9 DAY DELETE
     ''')
 
 def create_diagnostics_db():
