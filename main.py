@@ -1,17 +1,13 @@
 # main.py
 # starts and stops the data consumption pipeline
-
-# imports
 import threading, time, signal, logging
 from config import CLICKHOUSE_DURATION, ARCHIVE_FREQUENCY, HEARTBEAT_FREQUENCY
-
 from setup import new_client
 from cloud_migration import migration_to_cloud
 from kafka_consumer import start_consumer
 from monitoring import ticks_monitoring
-
 from logging.handlers import RotatingFileHandler
-# logging 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -45,7 +41,7 @@ if __name__ == "__main__":
         # start ingesting data from the websocket, feed to kafka, and insert to clickhouse
         consumer_thread = threading.Thread(target=start_consumer, args=(stop_event,))
         consumer_thread.start()
-        # misc daemon aka background threads for diagnostics and cloud migration and prometheus monitoring
+        # misc daemon aka background threads for diagnostics and cloud migration
         threading.Thread(target=ticks_monitoring, args=(stop_event,HEARTBEAT_FREQUENCY), daemon=True).start()
         threading.Thread(target=migration_to_cloud, args=(stop_event,CLICKHOUSE_DURATION, ARCHIVE_FREQUENCY), daemon=True).start() 
 

@@ -9,12 +9,12 @@ services:
     volumes:
       - clickhouse_data:/var/lib/clickhouse
     environment:
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: mysecurepassword
+      CLICKHOUSE_USER: ${CLICKHOUSE_USERNAME}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "clickhouse-client --query 'SELECT 1' --user=default --password=mysecurepassword || exit 1"]
+      test: ["CMD-SHELL", "clickhouse-client --query 'SELECT 1' --user=${CLICKHOUSE_USERNAME} --password=${CLICKHOUSE_PASSWORD} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -33,8 +33,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USERNAME}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
       GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
 
       # === EMBEDDING + ANONYMOUS ACCESS ===

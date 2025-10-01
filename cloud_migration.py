@@ -31,16 +31,6 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
             ])
 
             old_ticks_df['timestamp'] = pd.to_datetime(old_ticks_df['timestamp'], errors='coerce', utc=True)
-            old_ticks_df['second'] = old_ticks_df['timestamp'].dt.floor('1s')
-            old_ticks_df = old_ticks_df.groupby('second').agg({
-                'timestamp_ms': 'last',
-                'symbol': 'last',
-                'price': 'last',
-                'volume': 'sum',
-                'received_at': 'last',
-                'insert_time': 'last'
-            }).reset_index()
-            old_ticks_df.rename(columns={'second': 'timestamp'}, inplace=True)
 
             # save parquet locally, then upload to cloud
             latest_file = f'parquet_data/ticks.parquet'

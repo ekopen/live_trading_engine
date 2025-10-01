@@ -1,5 +1,4 @@
 # config.py
-# variables that are used across the project
 import os
 
 KAFKA_BOOTSTRAP_SERVER="159.65.41.22:9092"
@@ -12,3 +11,6 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION')
 BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+
+CLICKHOUSE_USERNAME = os.getenv('CLICKHOUSE_USERNAME')
+CLICKHOUSE_PASSWORD = os.getenv('CLICKHOUSE_PASSWORD')

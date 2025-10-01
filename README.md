@@ -9,11 +9,9 @@ Captures market data from a Kafka consumer and stores it in a ClickHouse databas
 - Continuously writes new data from the consumer to a ClickHouse database using batch methodology.
 - Retention in Clickhouse is capped by a time limit for memory and performance optimization. Old data is frequently archived to a parquet and then uploaded to AWS, and then is deleted off local drives and removed from ClickHouse.
 - Metrics such as message ingestion rate, Kafka lag, and websocket lag are frequently recorded and populated in other ClickHouse tables. All metrics are visualized in Grafana.
-- The market data saved in this Clickhouse table is used downstream in other modules, where it is querired to generate logic for algorithims in the trading module.
+- The market data saved in this Clickhouse table is downsampled and used in other modules, where it is querired to generate logic for algorithims in the trading module.
 
 ## Future Improvements  
 - Switch from Clickhouse batch insert to Clickhouse Kafka engine.
-- Turn on cloud migration with cost tracking.
 
 ## Known Issues  
-- Cloud upload might be buggy, investigate further.

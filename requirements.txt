@@ -3,3 +3,5 @@ kafka-python
 pandas
 python-dotenv
 boto3
+fastparquet
+pyarrow

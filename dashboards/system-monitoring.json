@@ -92,7 +92,7 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n    toStartOfMinute(avg_timestamp) AS minute,\r\n    avg(avg_websocket_lag) AS websocket_lag\r\nFROM websocket_diagnostics\r\nWHERE $__timeFilter(avg_timestamp)\r\nGROUP BY minute\r\nORDER BY minute DESC\r\nLIMIT 1;",
+          "rawSql": "SELECT\r\n    avg_websocket_lag\r\nFROM websocket_diagnostics\r\nORDER BY avg_timestamp DESC\r\nLIMIT 1;",
           "refId": "A"
         }
       ],
@@ -168,11 +168,11 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n    toStartOfMinute(avg_timestamp) AS minute,\r\n    avg(avg_processing_lag) AS processing_lag\r\nFROM processing_diagnostics\r\nWHERE $__timeFilter(avg_timestamp)\r\nGROUP BY minute\r\nORDER BY minute DESC\r\nLIMIT 1;",
+          "rawSql": "SELECT\r\n    avg_processing_lag\r\nFROM processing_diagnostics\r\nORDER BY avg_timestamp DESC\r\nLIMIT 1;",
           "refId": "A"
         }
       ],
-      "title": "Avg Consumer Lag",
+      "title": "Avg Processing Lag",
       "type": "stat"
     },
     {
@@ -444,5 +444,5 @@
   "timezone": "",
   "title": "System Monitoring",
   "uid": "blackbox-uptime",
-  "version": 7
+  "version": 8
 }

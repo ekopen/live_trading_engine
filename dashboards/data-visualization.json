@@ -46,7 +46,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 6,
         "x": 0,
         "y": 0
@@ -90,11 +90,11 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT price, timestamp\r\nFROM ticks_db\r\nORDER BY timestamp DESC\r\nLIMIT 1",
+          "rawSql": "SELECT\r\n    minute,\r\n    open\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nORDER BY minute DESC\r\nLIMIT 1",
           "refId": "A"
         }
       ],
-      "title": "Current ETH Price",
+      "title": "Current Price - ${Ticker}",
       "type": "stat"
     },
     {
@@ -110,7 +110,7 @@
             "seriesBy": "last"
           },
           "custom": {
-            "axisBorderShow": true,
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -118,7 +118,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 11,
+            "fillOpacity": 20,
             "gradientMode": "scheme",
             "hideFrom": {
               "legend": false,
@@ -130,13 +130,13 @@
             "lineStyle": {
               "fill": "solid"
             },
-            "lineWidth": 3,
-            "pointSize": 5,
+            "lineWidth": 2,
+            "pointSize": 1,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "auto",
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -160,12 +160,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
+        "h": 11,
         "w": 18,
         "x": 6,
         "y": 0
       },
-      "id": 1,
+      "id": 13,
       "options": {
         "legend": {
           "calcs": [],
@@ -200,11 +200,11 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 23) MILLISECOND\r\n  ) AS time,\r\n  avg(price) AS price\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time",
+          "rawSql": "SELECT\r\n    minute,\r\n    open, \r\n    symbol\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nORDER BY minute DESC",
           "refId": "A"
         }
       ],
-      "title": "ETH Price",
+      "title": "Price - ${Ticker}",
       "type": "timeseries"
     },
     {
@@ -215,7 +215,7 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "decimals": 2,
+          "decimals": 0,
           "fieldMinMax": false,
           "mappings": [],
           "thresholds": {
@@ -232,10 +232,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 7,
         "w": 3,
         "x": 0,
-        "y": 8
+        "y": 9
       },
       "id": 11,
       "options": {
@@ -279,11 +279,11 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  SUM(volume) AS total_vol\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\n",
+          "rawSql": "SELECT\r\n  SUM(volume) AS total_vol\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\n",
           "refId": "A"
         }
       ],
-      "title": "Volume ",
+      "title": "Trading Volume - ${Ticker}",
       "type": "stat"
     },
     {
@@ -311,10 +311,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 7,
         "w": 3,
         "x": 3,
-        "y": 8
+        "y": 9
       },
       "id": 12,
       "options": {
@@ -358,11 +358,11 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  SUM(volume * price) AS total_vol_usd\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\n",
+          "rawSql": "SELECT\r\n  SUM(volume * open) AS total_vol_usd\r\nFROM minute_bars_final\r\nWHERE $__timeFilter(minute) AND symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\n\r\n",
           "refId": "A"
         }
       ],
-      "title": "Volume (USD)",
+      "title": "Notional Volume - ${Ticker}",
       "type": "stat"
     },
     {
@@ -374,32 +374,28 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd",
-            "seriesBy": "last"
+            "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": true,
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "barWidthFactor": 0.4,
+            "barWidthFactor": 0.6,
             "drawStyle": "bars",
-            "fillOpacity": 92,
-            "gradientMode": "scheme",
+            "fillOpacity": 100,
+            "gradientMode": "hue",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "stepAfter",
-            "lineStyle": {
-              "fill": "solid"
-            },
-            "lineWidth": 0,
-            "pointSize": 7,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -420,6 +416,10 @@
               {
                 "color": "green",
                 "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           }
@@ -430,7 +430,7 @@
         "h": 5,
         "w": 18,
         "x": 6,
-        "y": 12
+        "y": 11
       },
       "id": 7,
       "options": {
@@ -467,11 +467,11 @@
           },
           "pluginVersion": "4.10.2",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  toStartOfInterval(\r\n    timestamp,\r\n    INTERVAL toUInt32($__interval_ms * 25) MILLISECOND\r\n  ) AS time,\r\n  sum(volume) as volume\r\nFROM ticks_db\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY time\r\nORDER BY time\r\n\r\n\r\n",
+          "rawSql": "SELECT\r\n    minute,\r\n    volume\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nORDER BY minute DESC",
           "refId": "A"
         }
       ],
-      "title": "ETH Volume",
+      "title": "Trading Volume - ${Ticker}",
       "type": "timeseries"
     }
   ],
@@ -493,6 +493,21 @@
         "refresh": 1,
         "regex": "",
         "type": "datasource"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {
+          "text": "BTC",
+          "value": "BTC"
+        },
+        "definition": "SELECT DISTINCT symbol\nFROM minute_bars_final\nORDER BY symbol",
+        "description": "",
+        "name": "Ticker",
+        "options": [],
+        "query": "SELECT DISTINCT symbol\nFROM minute_bars_final\nORDER BY symbol",
+        "refresh": 1,
+        "regex": "/BINANCE:(.*)USDT/",
+        "type": "query"
       }
     ]
   },
@@ -508,5 +523,5 @@
   "timezone": "browser",
   "title": "Market Data",
   "uid": "37fb53d0-bf32-4e50-b46e-3bf1a868e61e",
-  "version": 5
+  "version": 8
 }
