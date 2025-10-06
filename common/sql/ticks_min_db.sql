@@ -44,18 +44,3 @@ SELECT
     sumMerge(volume)      AS volume
 FROM minute_bars
 GROUP BY symbol, minute;
-
-
--- backfill
-INSERT INTO minute_bars
-SELECT
-    toStartOfMinute(timestamp) AS minute,
-    symbol,
-    anyHeavyState(price) AS open,
-    maxState(price)      AS high,
-    minState(price)      AS low,
-    anyLastState(price)  AS close,
-    avgState(price)      AS avg,
-    sumState(volume)     AS volume
-FROM ticks_db
-GROUP BY symbol, minute;

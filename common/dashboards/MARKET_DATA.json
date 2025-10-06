@@ -161,7 +161,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 9,
         "w": 18,
         "x": 6,
         "y": 0
@@ -429,10 +429,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 7,
         "w": 18,
         "x": 6,
-        "y": 11
+        "y": 9
       },
       "id": 7,
       "options": {
@@ -502,6 +502,10 @@
           "text": "ETH",
           "value": "ETH"
         },
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "bf0a0dycc92bkd"
+        },
         "definition": "SELECT DISTINCT symbol\nFROM minute_bars_final\nORDER BY symbol",
         "description": "",
         "name": "Ticker",
@@ -525,5 +529,5 @@
   "timezone": "browser",
   "title": "MARKET DATA",
   "uid": "37fb53d0-bf32-4e50-b46e-3bf1a868e61e",
-  "version": 2
+  "version": 1
 }
