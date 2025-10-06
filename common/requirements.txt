@@ -1,0 +1,14 @@
+boto3
+clickhouse-connect
+fastparquet
+joblib
+kafka-python
+numpy
+pandas
+pyarrow
+python-dotenv
+schedule
+scikeras
+scikit-learn
+tensorflow
+websocket-client

@@ -1,39 +1,136 @@
+version: "3.9"
+
 services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USERNAME}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --query 'SELECT 1' --user=${CLICKHOUSE_USERNAME} --password=${CLICKHOUSE_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:19092,EXTERNAL://${HOST_IP:-localhost}:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  market_data_stream:
+    build: ./market_data_stream
+    container_name: market_data_stream
+    env_file: .env
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./common/logs/market_data_stream:/app/logs
+    restart: unless-stopped
+
+  market_data_storage:
+    build: ./market_data_storage
+    container_name: market_data_storage
+    env_file: .env
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    volumes:
+      - ./common/logs/market_data_storage:/app/logs
+    restart: unless-stopped
+
+  ml_trading_strategies:
+    build: ./ml_trading_strategies
+    container_name: ml_trading_strategies
+    env_file: .env
+    depends_on:
+      - market_data_storage
+      - kafka
+    volumes:
+      - ./common/logs/ml_trading_strategies:/app/logs
+    restart: unless-stopped
+
+  systematic_trading:
+    build: ./systematic_trading
+    container_name: systematic_trading
+    env_file: .env
+    depends_on:
+      - ml_trading_strategies
+      - market_data_storage
+    volumes:
+      - ./common/logs/systematic_trading:/app/logs
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+      - ./common/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     ports:
       - "9090:9090"
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    ports:
-      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USERNAME}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
-      # For local testing you typically don't need domain/root_url settings
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
       GF_SECURITY_ALLOW_EMBEDDING: "true"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
-      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+    ports:
+      - "3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+      - ./common/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./common/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
 
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: trading_net
+
 volumes:
-  prometheus-data:
-  grafana-data:
+  clickhouse_data:
+  kafka_data:
+  grafana_data:
+  prometheus_data:

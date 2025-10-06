@@ -1,0 +1,48 @@
+# -------------------------------
+# Python
+# -------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# -------------------------------
+# Environment & Config
+# -------------------------------
+.env
+.vscode/
+.DS_Store
+.git/
+.gitignore
+
+# -------------------------------
+# Logs & Temp
+# -------------------------------
+common/logs/
+*.log
+*.tmp
+*.bak
+
+# -------------------------------
+# Data & Models (not needed in image)
+# -------------------------------
+market_data_storage/parquet_data/
+ml_trading_strategies/models/
+ml_trading_strategies/feature_data/
+systematic_trading/models/
+
+# -------------------------------
+# Docker Volumes & Persistent Data
+# -------------------------------
+clickhouse_data/
+kafka_data/
+grafana_data/
+prometheus_data/
+
+# -------------------------------
+# Old or Unused
+# -------------------------------
+common/old/

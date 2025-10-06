@@ -1,0 +1,58 @@
+# -------------------------------
+# Environment & System Files
+# -------------------------------
+.env
+.vscode/
+.DS_Store
+
+# -------------------------------
+# Python
+# -------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# -------------------------------
+# Logs
+# -------------------------------
+common/logs/*
+!/common/logs/.gitkeep
+
+# -------------------------------
+# Old or Backup Files
+# -------------------------------
+/common/old/
+
+# -------------------------------
+# Data & Models
+# -------------------------------
+market_data_storage/parquet_data/*
+!/market_data_storage/parquet_data/.gitkeep
+
+ml_trading_strategies/models/*
+!/ml_trading_strategies/models/.gitkeep
+
+ml_trading_strategies/feature_data/*
+!/ml_trading_strategies/feature_data/.gitkeep
+
+systematic_trading/models/*
+!/systematic_trading/models/.gitkeep
+
+# -------------------------------
+# Docker Volumes (Local Persistent Data)
+# -------------------------------
+clickhouse_data/
+kafka_data/
+grafana_data/
+prometheus_data/
+
+# -------------------------------
+# Cache / Temp Files
+# -------------------------------
+*.log
+*.tmp
+*.bak
