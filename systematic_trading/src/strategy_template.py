@@ -63,9 +63,9 @@ class StrategyTemplate:
         try:
             current_price = get_latest_price(self.symbol_raw)
             qty_owned = get_qty_balance(trading_data_client, self.strategy_name, self.symbol)
-
             if qty_owned == 0:
                 cash_balance = get_cash_balance(trading_data_client, self.strategy_name, self.symbol)
+
                 qty = (cash_balance * self.allocation_pct) / current_price
 
                 execution_logic = (
@@ -103,9 +103,19 @@ class StrategyTemplate:
                 prod_df = get_production_data(market_client, self.symbol_raw)
                 feature_df = build_features(prod_df)
                 feature_df_clean = feature_df.drop(columns=["price", "minute"]).tail(1)
+                if feature_df_clean.empty:
+                    logger.warning(f"Feature dataframe for {self.symbol} is empty after cleaning. Skipping iteration.")
+                    if self.stop_event.wait(self.execution_frequency):
+                        break
+                    continue
 
                 # GET MODEL
                 ml_model = get_ml_model(self.s3_key, self.local_path)
+                if ml_model is None:
+                    logger.warning(f"No ML model found for {self.symbol}. Skipping iteration.")
+                    if self.stop_event.wait(self.execution_frequency):
+                        break
+                    continue
 
                 # PREDICT FROM MODEL
                 # raw_pred = ml_model.predict(feature_df_clean)
@@ -120,7 +130,13 @@ class StrategyTemplate:
                 #     prediction = int(raw_pred[0])
 
                 # get probabilities to scale qty size based on confidence
-                probs = ml_model.predict_proba(feature_df_clean)[0]
+                try:
+                    probs = ml_model.predict_proba(feature_df_clean)[0]
+                except Exception as e:
+                    logger.warning(f"Model prediction failed for {self.symbol}: {e}")
+                    if self.stop_event.wait(self.execution_frequency):
+                        break
+                    continue
                 pred_class = probs.argmax()
                 conf = probs.max()
 

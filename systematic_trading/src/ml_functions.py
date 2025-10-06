@@ -50,27 +50,32 @@ def build_features(df):
     return df
 
 def get_ml_model(s3_key, local_path):
-    now = time.time()
+    try:
+        now = time.time()
 
-    if (
-        s3_key in cached_models and
-        (now - last_refresh_times.get(s3_key, 0)) < MODEL_REFRESH_INTERVAL
-    ):
-        return cached_models[s3_key]
+        if (
+            s3_key in cached_models and
+            (now - last_refresh_times.get(s3_key, 0)) < MODEL_REFRESH_INTERVAL
+        ):
+            return cached_models[s3_key]
 
-    # otherwise, refresh
-    logger.info(f"Downloading model {s3_key} from S3...")
-    s3.download_file(bucket_name, s3_key, local_path)
+        # otherwise, refresh
+        logger.info(f"Downloading model {s3_key} from S3...")
+        s3.download_file(bucket_name, s3_key, local_path)
 
-    # choose loader based on file extension for lstm h5
-    _, ext = os.path.splitext(local_path)
-    if ext == ".h5":
-        ml_model = load_model(local_path)
-    if ext == ".pkl":
-        ml_model = joblib.load(local_path)
+        # choose loader based on file extension for lstm h5
+        _, ext = os.path.splitext(local_path)
+        if ext == ".h5":
+            ml_model = load_model(local_path)
+        if ext == ".pkl":
+            ml_model = joblib.load(local_path)
 
-    # update cache
-    cached_models[s3_key] = ml_model
-    last_refresh_times[s3_key] = now
+        # update cache
+        cached_models[s3_key] = ml_model
+        last_refresh_times[s3_key] = now
 
-    return ml_model
+        return ml_model
+
+    except Exception as e:
+        logger.exception(f"Error loading ML model from S3 for {s3_key}")
+        return None

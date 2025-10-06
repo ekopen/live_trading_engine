@@ -3,7 +3,7 @@
 
 from config import SYMBOLS
 import threading, time, signal, logging
-from data import start_price_listener
+from data import start_price_listener, get_latest_price
 from strategies import get_strategies
 from logging.handlers import RotatingFileHandler
 
@@ -39,13 +39,22 @@ if __name__ == "__main__":
 
         start_price_listener(kafka_topic="price_ticks", group_id="trading-module-listener", stop_event=stop_event, symbols=SYMBOLS)
 
+        while True:
+            available = [sym for sym in SYMBOLS if get_latest_price(sym) is not None]
+            missing = [sym for sym in SYMBOLS if sym not in available]
+            if not missing:
+                logger.info("All symbols have initial prices. Proceeding with strategy startup.")
+                break
+            logger.warning(f"Waiting for initial prices for symbols: {missing}")
+            time.sleep(1)
+
         # start trading strategies
         all_threads = []
         for strat in strategy_arr:
             all_threads.extend(strat.run_strategy())
 
         while not stop_event.is_set():
-             time.sleep(1)
+            time.sleep(1)
 
         logger.info("Stop event set. Waiting for threads to finish...")
         for t in all_threads:

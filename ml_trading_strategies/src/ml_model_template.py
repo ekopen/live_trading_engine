@@ -45,6 +45,9 @@ class ML_Model_Template:
         try:
             client = clickhouse_client()
             X, y = load_dataset(self.feature_dir)
+            if len(X) < 1440:  # at least 1 day of minute data to train
+                logger.warning(f"Not enough data to train {self.model_name_key}. Needed 1440 rows, got {len(X)}. Skipping training.")
+                return
             train_and_eval(X, y, self.model,  self.model_name_key, self.model_description, client, self.model_dir, self.retrain_interval)
             if self.model_save_type == 'h5':
                 self.model.model_.save(self.model_dir)

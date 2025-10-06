@@ -1,7 +1,7 @@
 # data.py
 # used to get kafka data, clickhouse data, and connect to aws
 
-from config import MARKET_DATA_CLICKHOUSE_IP, KAFKA_IP, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_REGION, AWS_BUCKET, CLICKHOUSE_USERNAME, CLICKHOUSE_PASSWORD
+from config import AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_REGION, AWS_BUCKET, CLICKHOUSE_USERNAME, CLICKHOUSE_PASSWORD, KAFKA_BOOTSTRAP_SERVER
 import clickhouse_connect
 from kafka import KafkaConsumer
 import logging, json, boto3, threading
@@ -18,7 +18,7 @@ bucket_name = AWS_BUCKET
 
 def clickhouse_client():      
     client = clickhouse_connect.get_client(
-        host=MARKET_DATA_CLICKHOUSE_IP,
+        host="clickhouse",
         port=8123,
         username=CLICKHOUSE_USERNAME,   
         password=CLICKHOUSE_PASSWORD,
@@ -54,7 +54,7 @@ latest_prices = {}
 def start_price_listener(kafka_topic, group_id, stop_event, symbols=None):
     consumer = KafkaConsumer(
         kafka_topic,
-        bootstrap_servers=[KAFKA_IP],   # adjust with your KAFKA_IP
+        bootstrap_servers=[KAFKA_BOOTSTRAP_SERVER],
         auto_offset_reset="latest",
         enable_auto_commit=True,
         group_id=group_id,

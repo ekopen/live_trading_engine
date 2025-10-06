@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "cezo3kwc3wjy8c"
+        "uid": "df09fqyl2z9c0f"
       },
       "fieldConfig": {
         "defaults": {
@@ -60,66 +60,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "cash_balance"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 168
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "strategy_name"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 238
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "market_balance"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 184
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "portfolio_value"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 175
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "symbol"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 85
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "strategy_description"
             },
             "properties": [
@@ -148,8 +88,8 @@
         ]
       },
       "gridPos": {
-        "h": 12,
-        "w": 12,
+        "h": 15,
+        "w": 10,
         "x": 0,
         "y": 0
       },
@@ -159,8 +99,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": false,
-            "displayName": "cash_balance"
+            "desc": true,
+            "displayName": "portfolio_value"
           }
         ]
       },
@@ -183,9 +123,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.0",
           "queryType": "table",
-          "rawSql": "SELECT strategy_name, strategy_description, symbol, quantity,  market_value as market_balance, cash_balance, portfolio_value\r\nFROM portfolio_db_key",
+          "rawSql": "SELECT strategy_name, strategy_description, symbol, quantity, portfolio_value\r\nFROM portfolio_db_key\r\nORDER BY strategy_name",
           "refId": "A"
         }
       ],
@@ -195,7 +135,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "cezo3kwc3wjy8c"
+        "uid": "df09fqyl2z9c0f"
       },
       "fieldConfig": {
         "defaults": {
@@ -258,9 +198,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
-        "w": 12,
-        "x": 12,
+        "h": 15,
+        "w": 14,
+        "x": 10,
         "y": 0
       },
       "id": 2,
@@ -306,9 +246,9 @@
               "table": "execution_db"
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.0",
           "queryType": "timeseries",
-          "rawSql": "SELECT\r\n  time,\r\n  portfolio_value AS \" \",\r\n  strategy_name AS metric\r\nFROM portfolio_db_ts\r\nORDER BY time",
+          "rawSql": "SELECT\r\n  time,\r\n  portfolio_value AS \" \",\r\n  CONCAT(strategy_name, ' ', symbol) as metric\r\nFROM portfolio_db_ts\r\nORDER BY time",
           "refId": "A"
         }
       ],
@@ -318,7 +258,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "cezo3kwc3wjy8c"
+        "uid": "df09fqyl2z9c0f"
       },
       "fieldConfig": {
         "defaults": {
@@ -465,9 +405,9 @@
       },
       "gridPos": {
         "h": 12,
-        "w": 12,
+        "w": 10,
         "x": 0,
-        "y": 12
+        "y": 15
       },
       "id": 3,
       "options": {
@@ -495,9 +435,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.0",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  time,\r\n  strategy_name,\r\n  extract(execution_logic, 'decision: (\\\\w+)') AS decision,\r\n  symbol,\r\n  quantity,\r\n  executed_price,\r\n  quantity * executed_price as trade_value,\r\n  approval_comment\r\nFROM execution_db\r\nWHERE approval_status == 'Y' and decision != 'HOLD'\r\nORDER BY time DESC\r\nLIMIT 10\r\n",
+          "rawSql": "SELECT\r\n  time,\r\n  strategy_name,\r\n  extract(execution_logic, 'decision: (\\\\w+)') AS decision,\r\n  symbol,\r\n  quantity,\r\n  executed_price,\r\n  quantity * executed_price as trade_value,\r\n  approval_comment\r\nFROM execution_db\r\nWHERE approval_status == 'Y' and decision != 'HOLD' and decision != ''\r\nORDER BY time DESC\r\nLIMIT 10\r\n",
           "refId": "A"
         }
       ],
@@ -507,7 +447,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "cezo3kwc3wjy8c"
+        "uid": "df09fqyl2z9c0f"
       },
       "fieldConfig": {
         "defaults": {
@@ -666,9 +606,9 @@
       },
       "gridPos": {
         "h": 12,
-        "w": 12,
-        "x": 12,
-        "y": 12
+        "w": 14,
+        "x": 10,
+        "y": 15
       },
       "id": 4,
       "options": {
@@ -724,5 +664,5 @@
   "timezone": "browser",
   "title": "Portfolio Monitoring",
   "uid": "ad5pdrs",
-  "version": 3
+  "version": 1
 }

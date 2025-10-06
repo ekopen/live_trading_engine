@@ -67,7 +67,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:19092 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -106,6 +106,8 @@ services:
     depends_on:
       clickhouse:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
     volumes:
       - ./common/logs/market_data_storage:/app/logs
       - ./market_data_storage/parquet_data:/app/parquet_data
@@ -123,8 +125,10 @@ services:
     container_name: ml_trading_strategies
     env_file: .env
     depends_on:
-      - market_data_storage
-      - kafka
+      clickhouse:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     volumes:
       - ./common/logs/ml_trading_strategies:/app/logs
       - ./ml_trading_strategies/models:/app/models
@@ -143,8 +147,10 @@ services:
     container_name: systematic_trading
     env_file: .env
     depends_on:
-      - ml_trading_strategies
-      - market_data_storage
+      clickhouse:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     volumes:
       - ./common/logs/systematic_trading:/app/logs
       - ./systematic_trading/models:/app/models
@@ -202,6 +208,23 @@ services:
     container_name: node_exporter
     ports:
       - "9100:9100"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
     restart: unless-stopped
     logging:
       driver: "json-file"

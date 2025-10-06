@@ -35,7 +35,8 @@ def start_consumer(stop_event):
         bootstrap_servers=[KAFKA_BOOTSTRAP_SERVER],
         group_id='market_data_storage',
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        enable_auto_commit=False,
+        enable_auto_commit=True,
+        auto_commit_interval_ms=5000,
         auto_offset_reset="latest",
     )
 
@@ -63,7 +64,6 @@ def start_consumer(stop_event):
                                 column_names=['timestamp','timestamp_ms','symbol','price','volume','received_at']
                             )
                             logger.info(f"Inserted {len(batch)} rows to ticks_db.")
-                            # consumer.commit() # commits offset
                             batch.clear()
                             last_flush = time.time()
                     except Exception as e:

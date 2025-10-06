@@ -19,6 +19,10 @@ scrape_configs:
     static_configs:
       - targets: ["kafka:9092"]
 
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
   - job_name: "market_data_stream"
     static_configs:
       - targets: ["market_data_stream:8000"]
