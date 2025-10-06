@@ -63,6 +63,7 @@ def start_consumer(stop_event):
                                 column_names=['timestamp','timestamp_ms','symbol','price','volume','received_at']
                             )
                             logger.info(f"Inserted {len(batch)} rows to ticks_db.")
+                            # consumer.commit() # commits offset
                             batch.clear()
                             last_flush = time.time()
                     except Exception as e:
@@ -76,6 +77,7 @@ def start_consumer(stop_event):
                     column_names=['timestamp','timestamp_ms','symbol','price','volume','received_at']
                 )
                 logger.info(f"Inserted final {len(batch)} rows.")
+                consumer.commit()
         except Exception:
             logger.exception("Final batch insert failed")
         logger.info("Closing consumer.")
