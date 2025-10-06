@@ -14,8 +14,7 @@ MAX_SHORT = 200000 #max short value of any portfolio
 
 MONITORING_FREQUENCY = 60 #how often to record pf data to the time series
 
-MARKET_DATA_CLICKHOUSE_IP = "159.203.124.175"
-KAFKA_IP = "159.65.41.22:9092"
+KAFKA_BOOTSTRAP_SERVER="kafka:19092"
 
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")

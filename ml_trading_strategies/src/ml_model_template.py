@@ -2,7 +2,7 @@
 # contains a default class for all ml models
 
 from config import FEATURE_DIR, MODEL_DIR
-from setup import market_clickhouse_client, ml_clickhouse_client
+from setup import clickhouse_client
 from features import get_data, build_features, create_labels
 from training import load_dataset, train_and_eval, upload_to_cloud
 from tensorflow.keras.models import save_model
@@ -29,7 +29,7 @@ class ML_Model_Template:
     def create_feature_data(self):
         logger.info("Creating feature data.")
         try:
-            client = market_clickhouse_client()
+            client = clickhouse_client()
             df = get_data(client, self.symbol_raw)
             df_features = build_features(df)
             df_labels, counts = create_labels(df = df_features, horizon=20, buy_q=.9, sell_q=.1) # this could be modularized
@@ -43,7 +43,7 @@ class ML_Model_Template:
     def train_models(self):
         logger.info(f"Training model for {self.model_name_key}")
         try:
-            client = ml_clickhouse_client()
+            client = clickhouse_client()
             X, y = load_dataset(self.feature_dir)
             train_and_eval(X, y, self.model,  self.model_name_key, self.model_description, client, self.model_dir, self.retrain_interval)
             if self.model_save_type == 'h5':

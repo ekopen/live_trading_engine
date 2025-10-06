@@ -10,7 +10,7 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     handlers=[
         RotatingFileHandler(
-            "log_data/app.log",
+            "logs/app.log",
             maxBytes=5 * 1024 * 1024,  # 5 MB per file
             backupCount=3,
             encoding="utf-8"

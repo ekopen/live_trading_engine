@@ -3,7 +3,7 @@
 
 import threading, logging, time
 import numpy as np
-from data import get_latest_price, market_clickhouse_client, trading_clickhouse_client
+from data import get_latest_price, clickhouse_client
 from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance
 from ml_functions import get_production_data, build_features, get_ml_model
 from execution import execute_trade
@@ -33,7 +33,7 @@ class StrategyTemplate:
     def start_portfolio_monitoring(self):
         logger.info(f"Beginning position monitoring for {self.symbol}, {self.strategy_name}.")
         try:
-            trading_client = trading_clickhouse_client()
+            trading_client = clickhouse_client()
             portfolio_monitoring(self.stop_event, self.monitor_frequency, self.symbol, self.symbol_raw, self.strategy_name, trading_client)
         except Exception as e:
             logger.exception(f"Error beginning position monitoring for {self.symbol}, {self.strategy_name}: {e}")
@@ -166,8 +166,8 @@ class StrategyTemplate:
     def run_strategy(self):
         logger.info(f"Running strategy for {self.symbol}, {self.strategy_name}.")
         try:
-            market_client = market_clickhouse_client()
-            trading_client = trading_clickhouse_client()
+            market_client = clickhouse_client()
+            trading_client = clickhouse_client()
             t1 = threading.Thread(target=self.start_portfolio_monitoring, daemon=True)
             if self.strategy_name == "Long Only":
                 t2 = threading.Thread(target=self.long_only_strategy, args=(trading_client,), daemon=True)

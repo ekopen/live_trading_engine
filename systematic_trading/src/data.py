@@ -16,8 +16,7 @@ s3 = boto3.client(
 )
 bucket_name = AWS_BUCKET
 
-# historical market data
-def market_clickhouse_client():      
+def clickhouse_client():      
     client = clickhouse_connect.get_client(
         host=MARKET_DATA_CLICKHOUSE_IP,
         port=8123,
@@ -26,17 +25,6 @@ def market_clickhouse_client():
         database="default"
     )
     return client
-
-# portfolio data
-def trading_clickhouse_client():
-    return clickhouse_connect.get_client(
-        host="clickhouse",
-        # host="localhost",
-        port=8123,
-        username=CLICKHOUSE_USERNAME,
-        password=CLICKHOUSE_PASSWORD,
-        database="default"
-    )
 
 # # real time market data
 # def get_kafka_data(kafka_topic, group_id):
