@@ -194,7 +194,7 @@ services:
         condition: service_started
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./common/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./common/provisioning:/etc/grafana/provisioning
       - ./common/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
     logging:

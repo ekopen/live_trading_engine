@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
             model.create_feature_data()
             model.train_models()
-
+            
         while not stop_event.is_set():
              time.sleep(1)
 
