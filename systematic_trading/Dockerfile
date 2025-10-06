@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY ../common/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
@@ -12,4 +12,4 @@ COPY . .
 # Ensure logs dir exists inside container
 RUN mkdir -p /app/logs
 
-CMD ["python", "main.py"]
+CMD ["python", "src/main.py"]

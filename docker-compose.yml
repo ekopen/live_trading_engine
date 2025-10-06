@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   clickhouse:
     image: clickhouse/clickhouse-server:latest
@@ -44,7 +42,9 @@ services:
     restart: unless-stopped
 
   market_data_stream:
-    build: ./market_data_stream
+    build:
+      context: .
+      dockerfile: ./market_data_stream/Dockerfile
     container_name: market_data_stream
     env_file: .env
     depends_on:
@@ -55,7 +55,9 @@ services:
     restart: unless-stopped
 
   market_data_storage:
-    build: ./market_data_storage
+    build:
+      context: .
+      dockerfile: ./market_data_storage/Dockerfile
     container_name: market_data_storage
     env_file: .env
     depends_on:
@@ -63,10 +65,13 @@ services:
         condition: service_healthy
     volumes:
       - ./common/logs/market_data_storage:/app/logs
+      - ./parquet_data:/app/parquet_data
     restart: unless-stopped
 
   ml_trading_strategies:
-    build: ./ml_trading_strategies
+    build:
+      context: .
+      dockerfile: ./ml_trading_strategies/Dockerfile
     container_name: ml_trading_strategies
     env_file: .env
     depends_on:
@@ -74,10 +79,14 @@ services:
       - kafka
     volumes:
       - ./common/logs/ml_trading_strategies:/app/logs
+      - ./models:/app/models
+      - ./feature_data:/app/feature_data
     restart: unless-stopped
 
   systematic_trading:
-    build: ./systematic_trading
+    build:
+      context: .
+      dockerfile: ./systematic_trading/Dockerfile
     container_name: systematic_trading
     env_file: .env
     depends_on:
@@ -85,6 +94,7 @@ services:
       - market_data_storage
     volumes:
       - ./common/logs/systematic_trading:/app/logs
+      - ./models:/app/models
     restart: unless-stopped
 
   prometheus:
