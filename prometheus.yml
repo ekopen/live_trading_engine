@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 60s
+
+scrape_configs:
+  - job_name: "Data Stream"
+    static_configs:
+      - targets: ["159.65.41.22:9100"]
+
+  - job_name: "Data Storage"
+    static_configs:
+      - targets: ["159.203.124.175:9100"]
+
+  - job_name: "ML Strategies"
+    static_configs:
+      - targets: ["68.183.148.132:9100"]
+
+  - job_name: "Systematic Trading"
+    static_configs:
+      - targets: ["167.71.187.245:9100"]
+
+
+

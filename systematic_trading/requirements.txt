@@ -1,0 +1,10 @@
+kafka-python
+clickhouse-connect
+pandas
+numpy
+joblib
+boto3
+python-dotenv
+scikit-learn
+scikeras
+tensorflow
