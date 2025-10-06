@@ -2,14 +2,18 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
+# Install build dependencies
 RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
-COPY ../common/requirements.txt .
+# Copy shared requirements from the common folder
+COPY ./common/requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy this service’s source code
+COPY ./systematic_trading ./
 
-# Ensure logs dir exists inside container
-RUN mkdir -p /app/logs
+# Ensure logs directory exists
+RUN mkdir -p /app/logs /app/models
 
 CMD ["python", "src/main.py"]

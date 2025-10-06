@@ -1,6 +1,6 @@
 # setup.py
 
-from config import MARKET_DATA_CLICKHOUSE_IP, AWS_ACCESS_KEY, AWS_SECRET_KEY, CLICKHOUSE_USERNAME, CLICKHOUSE_PASSWORD
+from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, CLICKHOUSE_USERNAME, CLICKHOUSE_PASSWORD
 import clickhouse_connect
 import logging, boto3
 logger = logging.getLogger(__name__)

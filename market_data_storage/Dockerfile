@@ -14,6 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./market_data_storage ./
 
 # Ensure logs directory exists
-RUN mkdir -p /app/logs
+RUN mkdir -p /app/logs /app/parquet_data
 
 CMD ["python", "src/main.py"]

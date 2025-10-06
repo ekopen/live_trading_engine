@@ -1,7 +1,5 @@
 # main.py
 # starts and stops the data stream
-
-# imports
 import threading, time, signal, logging
 from config import SYMBOLS, API_KEY
 from kafka_producer import start_producer

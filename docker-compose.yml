@@ -1,4 +1,5 @@
 services:
+  # data storage
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     container_name: clickhouse
@@ -16,31 +17,68 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
+  # streaming data
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     container_name: kafka
     ports:
       - "9092:9092"
     environment:
+      # Single broker in KRaft mode
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # Listeners (internal for Docker, external for consumers)
       KAFKA_LISTENERS: "INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:19092,EXTERNAL://${HOST_IP:-localhost}:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:19092,EXTERNAL://localhost:9092"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+
+      # Broker basics
+      KAFKA_BROKER_ID: 1
+      CLUSTER_ID: "CQdFOKLdQ8Si0WWDeEUgGg"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      # Single-node replication factors
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+
+      # Memory
+      KAFKA_HEAP_OPTS: "-Xmx256M -Xms128M"
+
+      # Retention/logging (your values kept)
+      KAFKA_LOG_RETENTION_MINUTES: 15
+      KAFKA_LOG_SEGMENT_BYTES: 77428800
+      KAFKA_LOG_RETENTION_BYTES: 268435456
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+
     volumes:
       - kafka_data:/var/lib/kafka/data
+    restart: unless-stopped
+
     healthcheck:
       test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
-    restart: unless-stopped
 
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # modules
   market_data_stream:
     build:
       context: .
@@ -53,6 +91,11 @@ services:
     volumes:
       - ./common/logs/market_data_stream:/app/logs
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   market_data_storage:
     build:
@@ -65,8 +108,13 @@ services:
         condition: service_healthy
     volumes:
       - ./common/logs/market_data_storage:/app/logs
-      - ./parquet_data:/app/parquet_data
+      - ./market_data_storage/parquet_data:/app/parquet_data
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   ml_trading_strategies:
     build:
@@ -79,9 +127,14 @@ services:
       - kafka
     volumes:
       - ./common/logs/ml_trading_strategies:/app/logs
-      - ./models:/app/models
-      - ./feature_data:/app/feature_data
+      - ./ml_trading_strategies/models:/app/models
+      - ./ml_trading_strategies/feature_data:/app/feature_data
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   systematic_trading:
     build:
@@ -94,9 +147,15 @@ services:
       - market_data_storage
     volumes:
       - ./common/logs/systematic_trading:/app/logs
-      - ./models:/app/models
+      - ./systematic_trading/models:/app/models
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
+  # downstream monitoring
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -106,6 +165,11 @@ services:
     ports:
       - "9090:9090"
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   grafana:
     image: grafana/grafana:latest
@@ -127,6 +191,11 @@ services:
       - ./common/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./common/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   node_exporter:
     image: prom/node-exporter:latest
@@ -134,6 +203,11 @@ services:
     ports:
       - "9100:9100"
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
 networks:
   default:
