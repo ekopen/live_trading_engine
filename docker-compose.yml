@@ -1,4 +1,5 @@
 services:
+
   # data storage
   clickhouse:
     image: clickhouse/clickhouse-server:latest
@@ -36,7 +37,7 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
-      # Listeners (internal for Docker, external for consumers)
+      # Listeners
       KAFKA_LISTENERS: "INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:19092,EXTERNAL://localhost:9092"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
@@ -56,7 +57,7 @@ services:
       # Memory
       KAFKA_HEAP_OPTS: "-Xmx256M -Xms128M"
 
-      # Retention/logging (your values kept)
+      # Retention/logging
       KAFKA_LOG_RETENTION_MINUTES: 15
       KAFKA_LOG_SEGMENT_BYTES: 77428800
       KAFKA_LOG_RETENTION_BYTES: 268435456
@@ -162,6 +163,7 @@ services:
         max-file: "3"
 
   # downstream monitoring
+  # the "brain" to gather metrics
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -177,6 +179,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
+  # dashboarding
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -203,6 +206,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
+  # exporters for prometheus to scrape metrics from
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
@@ -214,7 +218,6 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
@@ -231,7 +234,6 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-      
   kafka_exporter:
     image: danielqsj/kafka-exporter
     container_name: kafka_exporter
