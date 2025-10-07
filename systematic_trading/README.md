@@ -13,8 +13,8 @@ Continuosly implements and runs machine learning based trading algorithims, reco
 - When strategies are turned off, they close out positions and return to a 100% cash balance.
 
 ## Future Improvements
-- Expand tracking of portfolio metrics. Specifically, far more risk metrics (VaR, max drawdown, etc.) should be continuosly calculated and considered for each trading decision.
-- Improve modeling of slippage conditions. Right now, it only a time delay is simulated. Consider looking into a paper trading platform for this.
+- Expand tracking of portfolio metrics. Specifically, far more risk metrics (VaR, max drawdown, etc.) should be continuosly calculated and considered for each trading decision. Other ratios (like Sharpe) and cost considerations (cost per trade) should be incorporated.
+- Improve modeling of slippage conditions. Right now, it only a time delay is simulated. Consider looking into a paper trading platform for this. 
 - Introduce market orders. The module currently only supports limit orders which makes strategy opening/closing slightly inaccurate.
 - Better orchestrate all the strategies. They should be individually turned on and off and more easily edited without rerunning Python code. Use a JSON file for this.
 - Have model refreshes triggered by pings from the ML Trading Strategies module, not on a timed schedule.
