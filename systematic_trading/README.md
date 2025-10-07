@@ -20,4 +20,5 @@ Continuosly implements and runs machine learning based trading algorithims, reco
 - Have model refreshes triggered by pings from the ML Trading Strategies module, not on a timed schedule.
 - Create better logic for the portfolio initialization/shut down. It should be reconciled with an actual portfolio from a paper trading platform.
 
-**Known Issues:**
+## Known Issues
+- N/A
