@@ -15,11 +15,10 @@
       }
     ]
   },
-  "description": "Monitors the Kafka producer",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 5,
+  "id": 1,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -71,7 +70,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -147,7 +146,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -225,7 +224,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -302,7 +301,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -379,7 +378,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -410,7 +409,7 @@
   ],
   "preload": false,
   "refresh": "10s",
-  "schemaVersion": 41,
+  "schemaVersion": 42,
   "tags": [
     "blackbox",
     "prometheus"
@@ -442,7 +441,7 @@
     ]
   },
   "timezone": "",
-  "title": "System Monitoring",
-  "uid": "blackbox-uptime",
-  "version": 8
+  "title": "MARKET DATA MONITORING",
+  "uid": "market-data-monitoring",
+  "version": 5
 }

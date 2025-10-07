@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 3,
+  "id": 4,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -504,7 +504,7 @@
         },
         "datasource": {
           "type": "grafana-clickhouse-datasource",
-          "uid": "bf0a0dycc92bkd"
+          "uid": "af0a2qlhij6yoa"
         },
         "definition": "SELECT DISTINCT symbol\nFROM minute_bars_final\nORDER BY symbol",
         "description": "",

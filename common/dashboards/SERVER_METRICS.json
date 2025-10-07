@@ -18,13 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 9,
+  "id": 6,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "bf09g3e2o4ttsb"
+        "uid": "cf0a2s2ugy3uoe"
       },
       "description": "",
       "fieldConfig": {
@@ -94,7 +94,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "bf09g3e2o4ttsb"
+            "uid": "cf0a2s2ugy3uoe"
           },
           "editorMode": "code",
           "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\", instance=\"node_exporter:9100\"}[$__rate_interval])))",
@@ -110,7 +110,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "bf09g3e2o4ttsb"
+        "uid": "cf0a2s2ugy3uoe"
       },
       "description": "",
       "fieldConfig": {
@@ -180,10 +180,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "bf09g3e2o4ttsb"
+            "uid": "cf0a2s2ugy3uoe"
           },
           "editorMode": "code",
-          "expr": "clamp_min((1 - (node_memory_MemAvailable_bytes{instance=\"node_exporter:9100\"} / node_memory_MemTotal_bytes{instance=\"node_exporter:9100\"})) * 100, 0)",
+          "expr": "clamp_min((1 - (node_memory_MemAvailable_bytes{instance=\"node_exporter:9100\"} / node_memory_MemTotal_bytes{instance=\"node_exporter:9100\"} )) * 100, 0)",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -196,7 +196,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "bf09g3e2o4ttsb"
+        "uid": "cf0a2s2ugy3uoe"
       },
       "description": "",
       "fieldConfig": {
@@ -266,10 +266,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "bf09g3e2o4ttsb"
+            "uid": "cf0a2s2ugy3uoe"
           },
           "editorMode": "code",
-          "expr": "avg(100 - ((node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} * 100) / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"}))\r\n",
+          "expr": "avg(100 - ((node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} * 100) / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"}))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -282,7 +282,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "bf09g3e2o4ttsb"
+        "uid": "cf0a2s2ugy3uoe"
       },
       "fieldConfig": {
         "defaults": {
@@ -366,17 +366,14 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "bf09g3e2o4ttsb"
+            "uid": "cf0a2s2ugy3uoe"
           },
           "editorMode": "code",
-          "expr": "sum by (name) (\r\n  container_memory_usage_bytes{\r\n    name=~\"market_data_stream|market_data_storage|ml_trading_strategies|systematic_trading\"\r\n  }\r\n) / 1024 / 1024\r\n",
-          "hide": false,
-          "intervalFactor": 2,
-          "legendFormat": "{{name}}",
-          "metric": "container_memory_usage_bytes",
+          "expr": "sum by (name) (container_memory_usage_bytes{name=~\"market_data_stream|market_data_storage|ml_trading_strategies|systematic_trading\"}) / 1024 / 1024",
+          "instant": false,
+          "legendFormat": "__auto",
           "range": true,
-          "refId": "A",
-          "step": 10
+          "refId": "A"
         }
       ],
       "title": "Memory Usage by Module",
@@ -397,5 +394,5 @@
   "timezone": "browser",
   "title": "SERVER METRICS",
   "uid": "ad9ppm2",
-  "version": 4
+  "version": 1
 }

@@ -18,13 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 2,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "dezkplk4clywwd"
+        "uid": "af0a2qlhij6yoa"
       },
       "fieldConfig": {
         "defaults": {
@@ -245,7 +245,7 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.0",
           "queryType": "table",
           "rawSql": "SELECT model_name, model_description, (now() - trained_at)/60/60 as hours_since_trained, train_accuracy, test_accuracy, precision, recall, f1\r\nFROM model_runs\r\nORDER BY hours_since_trained\r\nLIMIT 5\r\n",
           "refId": "A"
@@ -257,7 +257,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "dezkplk4clywwd"
+        "uid": "af0a2qlhij6yoa"
       },
       "fieldConfig": {
         "defaults": {
@@ -341,7 +341,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "ML Trading Strategies",
+  "title": "ML STRATEGIES",
   "uid": "adgkt7m",
-  "version": 15
+  "version": 1
 }

@@ -15,11 +15,10 @@
       }
     ]
   },
-  "description": "Monitors the Kafka producer",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 7,
+  "id": 8,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -71,7 +70,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -122,6 +121,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -168,7 +168,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.2.0",
       "targets": [
         {
           "datasource": {
@@ -188,11 +188,8 @@
   ],
   "preload": false,
   "refresh": "10s",
-  "schemaVersion": 41,
-  "tags": [
-    "blackbox",
-    "prometheus"
-  ],
+  "schemaVersion": 42,
+  "tags": [],
   "templating": {
     "list": [
       {
@@ -220,7 +217,7 @@
     ]
   },
   "timezone": "",
-  "title": "System Monitoring",
-  "uid": "blackbox-uptime",
-  "version": 10
+  "title": "DATA STREAM",
+  "uid": "data-stream",
+  "version": 2
 }

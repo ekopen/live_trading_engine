@@ -18,14 +18,14 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 1,
+  "id": 7,
   "links": [],
   "liveNow": true,
   "panels": [
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "df09fqyl2z9c0f"
+        "uid": "af0a2qlhij6yoa"
       },
       "fieldConfig": {
         "defaults": {
@@ -135,7 +135,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "df09fqyl2z9c0f"
+        "uid": "af0a2qlhij6yoa"
       },
       "fieldConfig": {
         "defaults": {
@@ -258,7 +258,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "df09fqyl2z9c0f"
+        "uid": "af0a2qlhij6yoa"
       },
       "fieldConfig": {
         "defaults": {
@@ -447,7 +447,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "df09fqyl2z9c0f"
+        "uid": "af0a2qlhij6yoa"
       },
       "fieldConfig": {
         "defaults": {
@@ -662,7 +662,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Portfolio Monitoring",
+  "title": "SYSTEMATIC TRADING",
   "uid": "ad5pdrs",
   "version": 1
 }
