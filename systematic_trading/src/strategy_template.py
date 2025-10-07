@@ -28,8 +28,6 @@ class StrategyTemplate:
         self.last_reset = time.time()
         self.reset_interval = reset_interval
 
-
-
     def start_portfolio_monitoring(self):
         logger.info(f"Beginning position monitoring for {self.symbol}, {self.strategy_name}.")
         try:
