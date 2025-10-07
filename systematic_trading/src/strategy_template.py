@@ -31,16 +31,16 @@ class StrategyTemplate:
     def start_portfolio_monitoring(self):
         logger.info(f"Beginning position monitoring for {self.symbol}, {self.strategy_name}.")
         try:
-            trading_client = clickhouse_client()
-            portfolio_monitoring(self.stop_event, self.monitor_frequency, self.symbol, self.symbol_raw, self.strategy_name, trading_client)
+            client = clickhouse_client()
+            portfolio_monitoring(self.stop_event, self.monitor_frequency, self.symbol, self.symbol_raw, self.strategy_name, client)
         except Exception as e:
             logger.exception(f"Error beginning position monitoring for {self.symbol}, {self.strategy_name}: {e}")
 
-    def close_position(self, trading_data_client):
+    def close_position(self, client):
         logger.info(f"Closing position for {self.symbol}, {self.strategy_name}.")
         try:
             current_price = get_latest_price(self.symbol_raw)
-            qty = get_qty_balance(trading_data_client, self.strategy_name, self.symbol)
+            qty = get_qty_balance(client, self.strategy_name, self.symbol)
             if qty < 0:
                 decision = "BUY"
             elif qty > 0:
@@ -52,17 +52,17 @@ class StrategyTemplate:
                 f"Currenty quantity of {self.symbol} is {qty}, executing a {decision}\n"
                 f"Model price: {current_price:.2f}"
             )
-            execute_trade(trading_data_client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic) 
+            execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic) 
         except Exception as e:
             logger.exception(f"Error closing position for {self.symbol}, {self.strategy_name}: {e}")
         
-    def long_only_strategy(self, trading_data_client):
+    def long_only_strategy(self, client):
         logger.info(f"Running Long Only buy-and-hold strategy for {self.symbol}, {self.strategy_name}.")
         try:
             current_price = get_latest_price(self.symbol_raw)
-            qty_owned = get_qty_balance(trading_data_client, self.strategy_name, self.symbol)
+            qty_owned = get_qty_balance(client, self.strategy_name, self.symbol)
             if qty_owned == 0:
-                cash_balance = get_cash_balance(trading_data_client, self.strategy_name, self.symbol)
+                cash_balance = get_cash_balance(client, self.strategy_name, self.symbol)
 
                 qty = (cash_balance * self.allocation_pct) / current_price
 
@@ -71,7 +71,7 @@ class StrategyTemplate:
                     f"Buy-and-hold benchmark, model price: {current_price:.2f}"
                 )
 
-                execute_trade(trading_data_client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic)
+                execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic)
                 logger.info(f"{self.strategy_name} initial BUY executed for {self.symbol}. Holding position now.")
             else:
                 logger.info(f"{self.strategy_name} already holds {qty_owned} {self.symbol}. No further trades.")
@@ -83,22 +83,22 @@ class StrategyTemplate:
         except Exception as e:
             logger.exception(f"Error in Long Only strategy for {self.symbol}: {e}")
         finally:
-            self.close_position(trading_data_client)
+            self.close_position(client)
             logger.info(f"Long Only strategy shutting down for {self.symbol}.")
 
-    def ml_strategy(self, market_client, trading_data_client):
+    def ml_strategy(self, client):
         logger.info(f"Beginning strategy signal generation for {self.symbol}, {self.strategy_name}.")
         try:
             while not self.stop_event.is_set():
                 # RESET LOGIC
                 now = time.time()
                 if now - self.last_reset > self.reset_interval:
-                    self.close_position(trading_data_client)
+                    self.close_position(client)
                     self.last_reset = now
                     continue
 
                 # GET PRODUCTION DATA
-                prod_df = get_production_data(market_client, self.symbol_raw)
+                prod_df = get_production_data(client, self.symbol_raw)
                 feature_df = build_features(prod_df)
                 feature_df_clean = feature_df.drop(columns=["price", "minute"]).tail(1)
                 if feature_df_clean.empty:
@@ -114,18 +114,6 @@ class StrategyTemplate:
                     if self.stop_event.wait(self.execution_frequency):
                         break
                     continue
-
-                # PREDICT FROM MODEL
-                # raw_pred = ml_model.predict(feature_df_clean)
-                # raw_pred = np.array(raw_pred)
-
-                # # Normalize prediction shape:
-                # if raw_pred.ndim > 1 and raw_pred.shape[1] > 1:  # probability vector
-                #     prediction = int(np.argmax(raw_pred, axis=1)[0])
-                # elif raw_pred.ndim > 1:  # (n,1) shaped
-                #     prediction = int(raw_pred[0][0])
-                # else:
-                #     prediction = int(raw_pred[0])
 
                 # get probabilities to scale qty size based on confidence
                 try:
@@ -155,7 +143,7 @@ class StrategyTemplate:
 
                 # DETERMINE TRADE SIZE
                 current_price = get_latest_price(self.symbol_raw)
-                cash_balance = get_cash_balance(trading_data_client, self.strategy_name, self.symbol)
+                cash_balance = get_cash_balance(client, self.strategy_name, self.symbol)
                 qty = (cash_balance * self.allocation_pct * size_factor) / current_price if decision in ["BUY", "SELL"] else 0
 
                 # RECORD EXECUTION LOGIC
@@ -165,7 +153,7 @@ class StrategyTemplate:
                 )
 
                 #SEND TRADE TO EXECTUION ENGINE
-                execute_trade(trading_data_client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic)
+                execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic)
 
                 # TRADE FREQUENCY
                 if self.stop_event.wait(self.execution_frequency):
@@ -174,20 +162,18 @@ class StrategyTemplate:
         except Exception as e:
             logger.exception(f"Error in {self.strategy_name} - {self.symbol} strategy: {e}")
         finally:
-            self.close_position(trading_data_client)
+            self.close_position(client)
             logger.info(f"{self.strategy_name} strategy shutting down for {self.symbol}.")
 
     def run_strategy(self):
         logger.info(f"Running strategy for {self.symbol}, {self.strategy_name}.")
         try:
-            market_client = clickhouse_client()
-            trading_client = clickhouse_client()
+            client = clickhouse_client()
             t1 = threading.Thread(target=self.start_portfolio_monitoring, daemon=True)
             if self.strategy_name == "Long Only":
-                t2 = threading.Thread(target=self.long_only_strategy, args=(trading_client,), daemon=True)
+                t2 = threading.Thread(target=self.long_only_strategy, args=(client,), daemon=True)
             else:
-                t2 = threading.Thread(target=self.ml_strategy, args=(market_client, trading_client), daemon=True)
-
+                t2 = threading.Thread(target=self.ml_strategy, args=(client,), daemon=True)
             t1.start()
             t2.start()
             return [t1, t2]

@@ -81,7 +81,7 @@ def get_ml_models(stop_event):
             model_description="Captures temporal dependencies and sequential patterns in data.",
             symbol='ETH',
             model = KerasClassifier(model=build_lstm_model, epochs=5, batch_size=32, verbose=0),
-            retrain_interval = 12,
+            retrain_interval = 24,
             model_save_type = "h5"    
         )
         ]

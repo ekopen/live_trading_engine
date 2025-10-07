@@ -6,13 +6,13 @@ Configures a Kafka producer that captures real-time market data from a websocket
 
 ## Details  
 - Connects to a Finnhub websocket that streams crypto pricing data (tick level granularity) from Binance for multiple currencies.  
-- Retention is capped by both time duration and memory size to optimize storage and keep latency low (configured via Kafka retention policies).  
-- Integrated with Prometheus and Grafana to track message throughput, producer health, memory usage, and server metrics.  
-- Other modules in the Live Trading Engine subscribe to this Kafka topic. For example, the market_data continuously writes streaming data into ClickHouse for historical analysis, while the trading consumes the latest prices for use in trading strategy execution.
+- Retention is capped by both time duration and memory size to optimize storage and keep latency low (configured via Kafka retention policies).   
+- Other modules in the Live Trading Engine subscribe to this Kafka topic. For example, the Market Data Storage module continuously writes streaming data into ClickHouse for historical analysis, while the Systematic Trading module consumes the latest prices for trade execution.
 
 ## Future Improvements  
 - Expand the producer include bid/ask price levels (for higher frequency strategies).   
 - Explore partitioning and schema management for scalability as data volume grows.  
 
 ## Known Issues  
-- Configuration files may contain redundant or overly complex settings. 
+- Create a Grafana alert in case the stream goes down.
+- Reconfigure Docker to have other services go down if the stream goes down. 

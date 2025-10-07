@@ -25,29 +25,6 @@ def clickhouse_client():
         database="default"
     )
     return client
-
-# # real time market data
-# def get_kafka_data(kafka_topic, group_id):
-#     consumer = KafkaConsumer(
-#         kafka_topic,
-#         bootstrap_servers=[KAFKA_IP],
-#         auto_offset_reset="latest",   
-#         enable_auto_commit=False,   
-#         group_id=group_id,
-#     )
-#     return consumer
-
-# # return latest message from the consumer (this should be optimized to "hang")
-# def get_latest_price(consumer):
-#     consumer.poll(timeout_ms=100)
-#     try:
-#         for tp in consumer.assignment():
-#             consumer.seek_to_end(tp)
-#         msg = next(consumer)
-#         return json.loads(msg.value.decode("utf-8")).get("price")
-#     except Exception:
-#         logger.exception("Error getting latest message from Kafka consumer")
-#         return None
     
 latest_prices = {}
 
