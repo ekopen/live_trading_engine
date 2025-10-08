@@ -19,7 +19,10 @@ Continuously implements and runs machine learning–based trading algorithms, re
 - Introduce market orders. The module currently supports only limit orders, which can cause slight inaccuracies in position entry and exit.  
 - Improve orchestration of trading strategies. Strategies should be independently toggleable and easily configurable via JSON files, without rerunning Python code.  
 - Enable model refreshes to be triggered by signals (pings) from the ML Trading Strategies module instead of a fixed time schedule.  
-- Enhance portfolio initialization and shutdown logic to reconcile simulated portfolios with actual paper trading accounts.  
+- Enhance portfolio initialization and shutdown logic to reconcile simulated portfolios with actual paper trading accounts.
+- Create a flag for up/down per strategy.
 
 ## Known Issues  
-- Closing positions currently relies on limit orders, which can leave small residual amounts invested due to slippage.  
+- Closing positions currently relies on limit orders, which can leave small residual amounts invested due to slippage.
+- LTSM is currently not trading due to an incompatibility I use to get predictions from the ML models.  
+
