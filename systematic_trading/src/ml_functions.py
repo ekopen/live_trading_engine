@@ -45,7 +45,21 @@ def build_features(df):
     ema26 = df["price"].ewm(span=26, adjust=False).mean()
     df["macd"] = ema12 - ema26
     df["macd_signal"] = df["macd"].ewm(span=9, adjust=False).mean()
-    
+
+    # STATIONARY FEATURES
+    df["price_change"] = df["price"].diff()
+    df["sma_ratio"] = df["sma_30"] / df["sma_60"] - 1
+    df["macd_diff"] = df["macd"] - df["macd_signal"]
+
+    # Smoothed return signal
+    df["ema_return_10"] = df["returns"].ewm(span=10, adjust=False).mean()
+
+    # Rolling z-score of returns
+    df["zscore_30"] = (df["returns"] - df["returns"].rolling(30).mean()) / df["returns"].rolling(30).std()
+
+    # Directional signal (momentum vs volatility)
+    df["dir_strength"] = df["momentum_10"] / (df["volatility_30"] + 1e-8)
+        
     df = df.dropna()
     return df
 

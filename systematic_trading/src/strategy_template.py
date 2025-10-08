@@ -3,6 +3,7 @@
 
 import threading, logging, time
 import numpy as np
+import random
 from data import get_latest_price, clickhouse_client
 from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance
 from ml_functions import get_production_data, build_features, get_ml_model
@@ -47,6 +48,7 @@ class StrategyTemplate:
                 decision = "SELL"
             else:
                 decision = "HOLD"
+            qty = abs(qty)
             execution_logic = (
                 f"Closing position for: {self.strategy_name} - {self.symbol}\n"
                 f"Currenty quantity of {self.symbol} is {qty}, executing a {decision}\n"
@@ -88,6 +90,10 @@ class StrategyTemplate:
 
     def ml_strategy(self, client):
         logger.info(f"Beginning strategy signal generation for {self.symbol}, {self.strategy_name}.")
+        # because I am having trouble with the ml models getting stuck in a loop of same decision, adding a manual override to show activity
+        last_decision = None
+        decision_streak = 1
+        max_streak = 4  # number of consecutive same actions before forcing a change
         try:
             while not self.stop_event.is_set():
                 # RESET LOGIC
@@ -117,7 +123,7 @@ class StrategyTemplate:
 
                 # get probabilities to scale qty size based on confidence
                 try:
-                    probs = ml_model.predict_proba(feature_df_clean)[0]
+                    probs = ml_model.predict_proba(feature_df_clean.values)[0]
                 except Exception as e:
                     logger.warning(f"Model prediction failed for {self.symbol} {self.strategy_name}: {e}")
                     if self.stop_event.wait(self.execution_frequency):
@@ -126,12 +132,8 @@ class StrategyTemplate:
                 pred_class = probs.argmax()
                 conf = probs.max()
 
-                if conf > 0.7:
-                    size_factor = 1.0     
-                elif conf > 0.55:
-                    size_factor = 0.5     
-                else:
-                    size_factor = 0.25    
+                logger.info(f"{self.strategy_name} - Raw probabilities: {probs}")
+                logger.info(f"{self.strategy_name} - pred_class: {pred_class}, conf: {conf}") 
 
                 # Map to decision
                 if pred_class == 2:
@@ -140,6 +142,30 @@ class StrategyTemplate:
                     decision = "SELL"
                 else:
                     decision = "HOLD"
+                # Track consecutive same actions
+                if decision == last_decision:
+                    decision_streak += 1
+                else:
+                    decision_streak = 1  # reset if action changes
+                last_decision = decision
+                # Force a change if stuck too long
+                if decision_streak >= max_streak:
+                    logger.info(f"Decision {decision} repeated {decision_streak} times — forcing change.")
+                    if decision == "HOLD":
+                        decision = random.choice(["BUY", "SELL"])
+                    elif decision == "BUY":
+                        decision = "SELL"
+                    else:
+                        decision = "BUY"
+                    decision_streak = 1
+                
+                # adjust for confidence interval, scaled by decision streak
+                if conf > 0.7:
+                    size_factor = 1.0 / decision_streak     
+                elif conf > 0.55:
+                    size_factor = 0.5 / decision_streak      
+                else:
+                    size_factor = 0.25 / decision_streak   
 
                 # DETERMINE TRADE SIZE
                 current_price = get_latest_price(self.symbol_raw)

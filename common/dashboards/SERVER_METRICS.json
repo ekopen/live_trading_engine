@@ -307,12 +307,12 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 3,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "showValues": false,
             "spanNulls": false,
             "stacking": {
@@ -394,5 +394,5 @@
   "timezone": "browser",
   "title": "SERVER METRICS",
   "uid": "ad9ppm2",
-  "version": 1
+  "version": 2
 }

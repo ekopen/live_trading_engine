@@ -44,6 +44,7 @@ if __name__ == "__main__":
             model.train_models()
             
         while not stop_event.is_set():
+             schedule.run_pending()
              time.sleep(1)
 
         logger.info("System shutdown complete.") 

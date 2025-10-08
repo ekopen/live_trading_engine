@@ -5,7 +5,11 @@ from config import AWS_BUCKET
 from setup import s3
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
 import pandas as pd
+import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
@@ -20,6 +24,15 @@ def train_and_eval(X, y, model, name, description, client, s3_key, retrain_inter
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, shuffle=False
     )
+    # normalizing
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    if "LSTM" in name:
+        X_train = np.expand_dims(X_train, axis=-1)
+        X_test = np.expand_dims(X_test, axis=-1)
+
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     train_acc = model.score(X_train, y_train)
@@ -28,6 +41,10 @@ def train_and_eval(X, y, model, name, description, client, s3_key, retrain_inter
     precision = report["weighted avg"]["precision"]
     recall = report["weighted avg"]["recall"]
     f1 = report["weighted avg"]["f1-score"]
+
+    logger.info(f"Confusion matrix for {name}: {confusion_matrix(y_test, y_pred)}")
+    unique_preds = pd.Series(y_pred).value_counts(normalize=True)
+    logger.info(f"Prediction distribution for {name}: {unique_preds.to_dict()}")
 
     # stores model performance and training history in a clickhouse table
     client.insert('model_runs',

@@ -32,7 +32,7 @@ class ML_Model_Template:
             client = clickhouse_client()
             df = get_data(client, self.symbol_raw)
             df_features = build_features(df)
-            df_labels, counts = create_labels(df = df_features, horizon=20, buy_q=.75, sell_q=.25) # this could be modularized
+            df_labels, counts = create_labels(df = df_features, horizon=60, buy_q=.65, sell_q=.35) # this could be modularized
             df_labels.to_parquet(self.feature_dir, index=False)
             logger.info(f"Label distribution for {self.model_name_key} (SELL=0, HOLD=1, BUY=2): {counts.to_dict()}")
             logger.info(f"Finished creating feature data for {self.model_name_key}.")

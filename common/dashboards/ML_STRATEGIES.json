@@ -17,8 +17,8 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
-  "id": 2,
+  "graphTooltip": 1,
+  "id": 10,
   "links": [],
   "panels": [
     {
@@ -205,26 +205,73 @@
                 "value": 216
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model_Name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 234
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "trained_at"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 221
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time_Until_Next_Retrain"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dthms"
+              },
+              {
+                "id": "custom.width",
+                "value": 216
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model_Description"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 547
+              }
+            ]
           }
         ]
       },
       "gridPos": {
         "h": 10,
-        "w": 17,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": 3,
       "options": {
         "cellHeight": "lg",
         "enablePagination": false,
         "showHeader": true,
-        "sortBy": [
-          {
-            "desc": false,
-            "displayName": "model_name"
-          }
-        ]
+        "sortBy": []
       },
       "pluginVersion": "12.2.0",
       "targets": [
@@ -247,86 +294,12 @@
           },
           "pluginVersion": "4.11.0",
           "queryType": "table",
-          "rawSql": "SELECT model_name, model_description, (now() - trained_at)/60/60 as hours_since_trained, train_accuracy, test_accuracy, precision, recall, f1\r\nFROM model_runs\r\nORDER BY hours_since_trained\r\nLIMIT 5\r\n",
+          "rawSql": "SELECT model_name AS Model_Name,\r\n       model_description AS Model_Description,\r\n       (trained_at + INTERVAL retrain_interval HOUR) - now() as Time_Until_Next_Retrain,\r\n       train_accuracy AS Train_Accuracy,\r\n       test_accuracy AS Test_Accuracy,\r\n       precision AS Precision,\r\n       recall AS Recall,\r\n       f1 AS F1\r\nFROM (\r\n    SELECT *,\r\n           ROW_NUMBER() OVER (PARTITION BY model_name ORDER BY Time_Until_Next_Retrain DESC) AS rn\r\n    FROM model_runs\r\n) ranked\r\nWHERE rn = 1\r\nORDER BY Time_Until_Next_Retrain ASC, Model_Name;\r\n",
           "refId": "A"
         }
       ],
       "title": "Current Deployed Models",
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "af0a2qlhij6yoa"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "text",
-            "mode": "fixed"
-          },
-          "decimals": 1,
-          "mappings": [],
-          "thresholds": {
-            "mode": "percentage",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "dthms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 7,
-        "x": 17,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.2.0",
-      "targets": [
-        {
-          "editorType": "sql",
-          "format": 1,
-          "meta": {
-            "builderOptions": {
-              "columns": [],
-              "database": "",
-              "limit": 1000,
-              "mode": "list",
-              "queryType": "table",
-              "table": ""
-            }
-          },
-          "pluginVersion": "4.10.2",
-          "queryType": "table",
-          "rawSql": "SELECT dateDiff('second', now(), max(trained_at) + INTERVAL 12 HOUR) AS seconds_until_next\r\nFROM model_runs\r\n",
-          "refId": "A"
-        }
-      ],
-      "title": "Time Until Next Model Retrain",
-      "type": "stat"
     }
   ],
   "preload": false,
@@ -339,9 +312,14 @@
     "from": "now-15m",
     "to": "now"
   },
-  "timepicker": {},
+  "timepicker": {
+    "hidden": true,
+    "refresh_intervals": [
+      "5s"
+    ]
+  },
   "timezone": "browser",
   "title": "ML STRATEGIES",
   "uid": "adgkt7m",
-  "version": 1
+  "version": 3
 }

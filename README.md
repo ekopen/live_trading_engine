@@ -1,17 +1,19 @@
-# Live Trading Engine 
+# Live Trading Engine  
+
 Visit [www.erickopen.com](http://www.erickopen.com) to see my projects running live and to view comprehensive documentation.  
 
 ## Overview  
-This is the repo for a trading engine that is designed to be up 24/7. It continuously intakes market data, stores that data, uses the data to frequently train machine learning models, and then uses those machine learning models to make trading decisions. This project showcases my skillset in creating trading infrastructure.
+This repository contains a fully automated trading engine designed to operate 24/7. It continuously ingests market data, stores that data, retrains machine learning models on a frequent basis, and uses those models to make trading decisions. This project highlights my ability to design and implement robust trading infrastructure.
 
-## Details
-- This project consists of 4 modules:
-    - Market Data Stream: streams real time tick level market data for five different cryptocurrencies
-    - Market Data Storage: continuously populates a database with new tick data
-    - ML Trading Strategies: frequently retrains machine learning models based on new market data
-    - Systematic Trading: uses ml models to simulate making trading decisions, incorporating an execution, risk assessment, and portfolio tracking engine
-- This code is containerized via Docker and currently runs on a Digial Ocean server. Dashboards (available on my website) are created via Grafana.
+## Details  
+This project consists of four primary modules:  
+- **Market Data Stream:** Streams real-time, tick-level market data for five different cryptocurrencies.  
+- **Market Data Storage:** Continuously populates a database with incoming tick data.  
+- **ML Trading Strategies:** Retrains machine learning models frequently based on the latest market data.  
+- **Systematic Trading:** Simulates real-time trading decisions using ML models, with integrated execution, risk management, and portfolio tracking components.  
 
-## Future Improvements
-- Introduce Kubernetes for automatic resource scaling.
-- Create one config file for all modules, as well as JSON files for different ML models/strategies.
+The system is containerized using Docker and currently deployed on a DigitalOcean server. Dashboards (available on my website) are built using Grafana for real-time monitoring and visualization.  
+
+## Future Improvements  
+- Implement Kubernetes for automatic resource scaling and orchestration.  
+- Consolidate configuration into a single master config file, with modular JSON files defining various ML models and trading strategies.  

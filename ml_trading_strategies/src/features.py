@@ -37,13 +37,29 @@ def build_features(df):
     ema26 = df["price"].ewm(span=26, adjust=False).mean()
     df["macd"] = ema12 - ema26
     df["macd_signal"] = df["macd"].ewm(span=9, adjust=False).mean()
-    
+
+    # STATIONARY FEATURES
+    df["price_change"] = df["price"].diff()
+    df["sma_ratio"] = df["sma_30"] / df["sma_60"] - 1
+    df["macd_diff"] = df["macd"] - df["macd_signal"]
+
+    # Smoothed return signal
+    df["ema_return_10"] = df["returns"].ewm(span=10, adjust=False).mean()
+
+    # Rolling z-score of returns
+    df["zscore_30"] = (df["returns"] - df["returns"].rolling(30).mean()) / df["returns"].rolling(30).std()
+
+    # Directional signal (momentum vs volatility)
+    df["dir_strength"] = df["momentum_10"] / (df["volatility_30"] + 1e-8)
+        
     df = df.dropna()
     return df
 
 def create_labels(df, horizon, buy_q, sell_q):
-    df = df.copy()  # make sure it's not a view
+    df = df.copy() 
     df["future_return"] = df["price"].shift(-horizon) / df["price"] - 1
+    df["future_return"] = df["future_return"].ewm(span=5, adjust=False).mean()
+
     # compute dynamic thresholds
     upper = df["future_return"].quantile(buy_q)
     lower = df["future_return"].quantile(sell_q)
@@ -51,6 +67,18 @@ def create_labels(df, horizon, buy_q, sell_q):
     df["label"] = 1  # HOLD by default
     df.loc[df["future_return"] > upper, "label"] = 2  # BUY
     df.loc[df["future_return"] < lower, "label"] = 0  # SELL
+
+    # Ensure minimum class ratios
+    min_class_ratio = 0.1
+    counts = df["label"].value_counts(normalize=True)
+    if counts.get(2, 0) < min_class_ratio or counts.get(0, 0) < min_class_ratio:
+        logger.warning(f"Imbalanced labels detected (BUY={counts.get(2,0):.3f}, SELL={counts.get(0,0):.3f}). Expanding quantile thresholds.")
+        buy_q = min(0.95, buy_q + 0.05)
+        sell_q = max(0.05, sell_q - 0.05)
+        upper = df["future_return"].quantile(buy_q)
+        lower = df["future_return"].quantile(sell_q)
+        df.loc[df["future_return"] > upper, "label"] = 2
+        df.loc[df["future_return"] < lower, "label"] = 0
 
     df = df.dropna()
     counts = df["label"].value_counts(normalize=True).sort_index()
