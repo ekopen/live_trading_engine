@@ -13,4 +13,5 @@ This is the repo for a trading engine that is designed to be up 24/7. It continu
 - This code is containerized via Docker and currently runs on a Digial Ocean server. Dashboards (available on my website) are created via Grafana.
 
 ## Future Improvements
-- Introduce Kubernetes for automatic resource scaling
+- Introduce Kubernetes for automatic resource scaling.
+- Create one config file for all modules, as well as JSON files for different ML models/strategies.

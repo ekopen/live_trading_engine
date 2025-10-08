@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 1,
+  "id": 9,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -48,7 +48,7 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 5,
+        "w": 6,
         "x": 0,
         "y": 0
       },
@@ -124,8 +124,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 5,
-        "x": 5,
+        "w": 6,
+        "x": 6,
         "y": 0
       },
       "id": 19,
@@ -181,84 +181,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [],
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
-                "value": 0
-              },
-              {
-                "color": "dark-red",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "locale"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 5,
-        "x": 10,
-        "y": 0
-      },
-      "id": 15,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "${ds_clickhouse}"
-          },
-          "editorType": "sql",
-          "format": 1,
-          "meta": {
-            "builderOptions": {
-              "columns": [],
-              "database": "",
-              "limit": 1000,
-              "mode": "list",
-              "queryType": "table",
-              "table": ""
-            }
-          },
-          "pluginVersion": "4.10.2",
-          "queryType": "table",
-          "rawSql": "SELECT\r\n    toStartOfMinute(timestamp) AS minute,\r\n    count(timestamp) AS ticksPerMinute\r\nFROM ticks_db\r\nWHERE timestamp >= now() - INTERVAL 5 MINUTE\r\nGROUP BY minute\r\nORDER BY minute DESC\r\nLIMIT 1;",
-          "refId": "A"
-        }
-      ],
-      "title": "New Rows / Minute",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "${ds_clickhouse}"
-      },
-      "fieldConfig": {
-        "defaults": {
           "color": {
             "fixedColor": "text",
             "mode": "fixed"
@@ -279,8 +201,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 5,
-        "x": 15,
+        "w": 6,
+        "x": 12,
         "y": 0
       },
       "id": 21,
@@ -356,8 +278,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 4,
-        "x": 20,
+        "w": 6,
+        "x": 18,
         "y": 0
       },
       "id": 22,
@@ -443,5 +365,5 @@
   "timezone": "",
   "title": "MARKET DATA MONITORING",
   "uid": "market-data-monitoring",
-  "version": 5
+  "version": 1
 }

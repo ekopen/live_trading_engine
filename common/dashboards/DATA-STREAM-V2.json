@@ -85,7 +85,7 @@
           "refId": "A"
         }
       ],
-      "title": "Messages/Minute",
+      "title": "Messages/Second",
       "type": "stat"
     },
     {
@@ -184,7 +184,7 @@
           "refId": "A"
         }
       ],
-      "title": "Kafka Messages/Minute",
+      "title": "Kafka Messages/Second",
       "type": "timeseries"
     }
   ],

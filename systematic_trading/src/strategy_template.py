@@ -119,7 +119,7 @@ class StrategyTemplate:
                 try:
                     probs = ml_model.predict_proba(feature_df_clean)[0]
                 except Exception as e:
-                    logger.warning(f"Model prediction failed for {self.symbol}: {e}")
+                    logger.warning(f"Model prediction failed for {self.symbol} {self.strategy_name}: {e}")
                     if self.stop_event.wait(self.execution_frequency):
                         break
                     continue
