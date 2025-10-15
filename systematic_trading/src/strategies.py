@@ -19,7 +19,9 @@ def get_strategies(stop_event):
             allocation_pct = 1,
             reset_interval = 60 * 60 * 24,
             s3_key = "models/long-only.pkl",
-            local_path = "models/long-only.pkl"
+            local_path = "models/long-only.pkl",
+            LSTM_flag = False,
+            max_streak = 0
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -34,7 +36,9 @@ def get_strategies(stop_event):
             allocation_pct = 1,
             reset_interval = 60 * 60 * 24,
             s3_key = "models/long-only.pkl",
-            local_path = "models/long-only.pkl"
+            local_path = "models/long-only.pkl",
+            LSTM_flag = False,
+            max_streak = 0
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -49,7 +53,9 @@ def get_strategies(stop_event):
             allocation_pct = 1,
             reset_interval = 60 * 60 * 24,
             s3_key = "models/long-only.pkl",
-            local_path = "models/long-only.pkl"
+            local_path = "models/long-only.pkl",
+            LSTM_flag = False,
+            max_streak = 0
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -64,7 +70,9 @@ def get_strategies(stop_event):
             allocation_pct = 1,
             reset_interval = 60 * 60 * 24,
             s3_key = "models/long-only.pkl",
-            local_path = "models/long-only.pkl"
+            local_path = "models/long-only.pkl",
+            LSTM_flag = False,
+            max_streak = 0
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -79,7 +87,9 @@ def get_strategies(stop_event):
             allocation_pct = 1,
             reset_interval = 60 * 60 * 24,
             s3_key = "models/long-only.pkl",
-            local_path = "models/long-only.pkl"
+            local_path = "models/long-only.pkl",
+            LSTM_flag = False,
+            max_streak = 0
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -90,11 +100,13 @@ def get_strategies(stop_event):
             starting_mv=0,
             monitor_frequency=MONITORING_FREQUENCY,
             strategy_description=("Ensemble of decision trees that captures non-linear relationships."),
-            execution_frequency= 60 * 5,
+            execution_frequency= 60 * 4,
             allocation_pct = .2,
             reset_interval = 60 * 60 * 4,
             s3_key = "models/Random-Forest-ETH-model.pkl",
-            local_path = "models/Random-Forest-ETH-model.pkl"
+            local_path = "models/Random-Forest-ETH-model.pkl",
+            LSTM_flag = False,
+            max_streak = 4
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -105,11 +117,13 @@ def get_strategies(stop_event):
             starting_mv=0,
             monitor_frequency=MONITORING_FREQUENCY,
             strategy_description=("Sequentially builds an ensemble to reduce errors and improve accuracy."),
-            execution_frequency= 60 * 5,
+            execution_frequency= 60 * 6,
             allocation_pct = .2,
             reset_interval = 60 * 60 * 4,
             s3_key = "models/Gradient-Boosting-ETH-model.pkl",
-            local_path = "models/Gradient-Boosting-ETH-model.pkl"
+            local_path = "models/Gradient-Boosting-ETH-model.pkl",
+            LSTM_flag = False,
+            max_streak = 6
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -120,11 +134,13 @@ def get_strategies(stop_event):
             starting_mv=0,
             monitor_frequency=MONITORING_FREQUENCY,
             strategy_description=("A linear baseline model for classification tasks."),
-            execution_frequency= 60 * 5,
+            execution_frequency= 60 * 2,
             allocation_pct = .25,
             reset_interval = 60 *60 * 12,
             s3_key = "models/Logistic-Regression-ETH-model.pkl",
-            local_path = "models/Logistic-Regression-ETH-model.pkl"
+            local_path = "models/Logistic-Regression-ETH-model.pkl",
+            LSTM_flag = False,
+            max_streak = 2
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -139,7 +155,9 @@ def get_strategies(stop_event):
             allocation_pct = .5,
             reset_interval = 60 * 60 * 12,
             s3_key = "models/LSTM-ETH-model.h5",
-            local_path = "models/LSTM-ETH-model.h5"
+            local_path = "models/LSTM-ETH-model.h5",
+            LSTM_flag = True,
+            max_streak = 5
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -154,7 +172,9 @@ def get_strategies(stop_event):
             allocation_pct = .25,
             reset_interval = 60 * 60 * 12,
             s3_key = "models/SVM-(RBF-Kernel)-ETH-model.pkl",
-            local_path = "models/SVM-(RBF-Kernel)-ETH-model.pkl"
+            local_path = "models/SVM-(RBF-Kernel)-ETH-model.pkl",
+            LSTM_flag = False,
+            max_streak = 4
         ),
         
     ]

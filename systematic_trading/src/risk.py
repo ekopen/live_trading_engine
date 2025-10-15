@@ -6,7 +6,7 @@ from config import MAX_DRAWDOWN, MAX_ALLOCATION, MAX_SHORT
 from portfolio import get_cash_balance, get_qty_balance
 logger = logging.getLogger(__name__)
 
-def check_position_size(client, symbol, qty, price, strategy_name, max_allocation=MAX_ALLOCATION):
+def check_position_size(client, symbol, qty, direction, price, strategy_name, max_allocation=MAX_ALLOCATION):
     try:
         if strategy_name == 'Long Only':
             return True, "Long Only automatic bypass"
@@ -19,8 +19,8 @@ def check_position_size(client, symbol, qty, price, strategy_name, max_allocatio
         portfolio_value , current_qty = rows[0]
         trade_value = abs(qty * price)
 
-        if (current_qty > 0 and qty < 0) or (current_qty < 0 and qty > 0):
-            return True, "Closing/reducing position — bypass allocation check"
+        if (current_qty > 0 and direction == -1) or (current_qty < 0 and direction == 1):
+            return True, "Closing/reducing position — bypass ..."
 
         if trade_value > max_allocation * portfolio_value:
             msg = f"Trade value {trade_value:.2f} exceeds max allocation {max_allocation*100:.1f}% of portfolio {portfolio_value:.2f}"
@@ -39,7 +39,7 @@ def check_cash_balance(client, qty, direction, price, strategy_name, symbol):
         current_qty = get_qty_balance(client, strategy_name, symbol)
 
         if (current_qty > 0 and direction == -1) or (current_qty < 0 and direction == 1):
-            return True, "Closing/reducing position — bypass cash check"
+            return True, "Closing/reducing position — bypass ..."
 
         if direction == 1 and trade_cost > cash_balance:
             msg = f"Not enough cash. Needed {trade_cost:.2f}, available {cash_balance:.2f}"
@@ -100,7 +100,7 @@ def check_max_drawdown(client, strategy_name, symbol, max_drawdown=MAX_DRAWDOWN)
 
 def run_risk_checks(client, symbol, qty, direction, model_price, strategy_name):
     checks = [
-        check_position_size(client, symbol, qty, model_price, strategy_name),
+        check_position_size(client, symbol, qty, direction, model_price, strategy_name),
         check_cash_balance(client, qty, direction,
          model_price, strategy_name, symbol),
         check_qty_balance(client, qty, direction,

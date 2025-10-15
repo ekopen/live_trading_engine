@@ -45,7 +45,9 @@ def start_price_listener(kafka_topic, group_id, stop_event, symbols=None):
             data = msg.value
             sym = data["symbol"]
             if not symbols or sym in symbols:
-                latest_prices[sym] = data["price"]
+                price = data.get("price")
+                if isinstance(price, (int, float)):
+                    latest_prices[sym] = price
         consumer.close()
 
     threading.Thread(target=run, daemon=True).start()

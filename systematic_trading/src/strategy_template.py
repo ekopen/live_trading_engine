@@ -1,18 +1,17 @@
 # strategy_template.py
 #  contains a default class for all strategies
 
-import threading, logging, time
+import threading, logging, time, os, random
 import numpy as np
-import random
 from data import get_latest_price, clickhouse_client
-from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance
+from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance, get_pv_value, update_status
 from ml_functions import get_production_data, build_features, get_ml_model
 from execution import execute_trade
 logger = logging.getLogger(__name__)
 
 class StrategyTemplate:
 
-    def __init__(self, stop_event, kafka_topic, symbol, strategy_name, starting_cash, starting_mv, monitor_frequency, strategy_description, execution_frequency, allocation_pct, reset_interval, s3_key, local_path):
+    def __init__(self, stop_event, kafka_topic, symbol, strategy_name, starting_cash, starting_mv, monitor_frequency, strategy_description, execution_frequency, allocation_pct, reset_interval, s3_key, local_path, LSTM_flag, max_streak):
         self.stop_event = stop_event
         self.kafka_topic = kafka_topic
         self.symbol = symbol
@@ -28,6 +27,8 @@ class StrategyTemplate:
         self.local_path = local_path
         self.last_reset = time.time()
         self.reset_interval = reset_interval
+        self.LSTM_flag = LSTM_flag
+        self.max_streak = max_streak
 
     def start_portfolio_monitoring(self):
         logger.info(f"Beginning position monitoring for {self.symbol}, {self.strategy_name}.")
@@ -51,15 +52,17 @@ class StrategyTemplate:
             qty = abs(qty)
             execution_logic = (
                 f"Closing position for: {self.strategy_name} - {self.symbol}\n"
-                f"Currenty quantity of {self.symbol} is {qty}, executing a {decision}\n"
+                f"Current quantity of {self.symbol} is {qty}, executing a {decision}\n"
                 f"Model price: {current_price:.2f}"
             )
             execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic) 
+            update_status(client, self.strategy_name, self.symbol, 'closed')
         except Exception as e:
             logger.exception(f"Error closing position for {self.symbol}, {self.strategy_name}: {e}")
         
     def long_only_strategy(self, client):
         logger.info(f"Running Long Only buy-and-hold strategy for {self.symbol}, {self.strategy_name}.")
+        update_status(client, self.strategy_name, self.symbol, 'active')
         try:
             current_price = get_latest_price(self.symbol_raw)
             qty_owned = get_qty_balance(client, self.strategy_name, self.symbol)
@@ -90,10 +93,10 @@ class StrategyTemplate:
 
     def ml_strategy(self, client):
         logger.info(f"Beginning strategy signal generation for {self.symbol}, {self.strategy_name}.")
+        update_status(client, self.strategy_name, self.symbol, 'active')
         # because I am having trouble with the ml models getting stuck in a loop of same decision, adding a manual override to show activity
         last_decision = None
         decision_streak = 1
-        max_streak = 4  # number of consecutive same actions before forcing a change
         try:
             while not self.stop_event.is_set():
                 # RESET LOGIC
@@ -114,7 +117,7 @@ class StrategyTemplate:
                     continue
 
                 # GET MODEL
-                ml_model = get_ml_model(self.s3_key, self.local_path)
+                ml_model = get_ml_model(self.s3_key, self.local_path, self.LSTM_flag)
                 if ml_model is None:
                     logger.warning(f"No ML model found for {self.symbol}. Skipping iteration.")
                     if self.stop_event.wait(self.execution_frequency):
@@ -123,14 +126,22 @@ class StrategyTemplate:
 
                 # get probabilities to scale qty size based on confidence
                 try:
-                    probs = ml_model.predict_proba(feature_df_clean.values)[0]
+                    if not self.LSTM_flag: # non LSTM case
+                        probs = ml_model.predict_proba(feature_df_clean.values)[0]
+                    else: # LSTM case
+                        X = feature_df_clean.values
+                        X = np.expand_dims(X, axis=-1)
+                        preds = ml_model.predict(X)
+                        probs = preds[0]
+
+                    pred_class = np.argmax(probs)
+                    conf = np.max(probs)
+
                 except Exception as e:
                     logger.warning(f"Model prediction failed for {self.symbol} {self.strategy_name}: {e}")
                     if self.stop_event.wait(self.execution_frequency):
                         break
                     continue
-                pred_class = probs.argmax()
-                conf = probs.max()
 
                 logger.info(f"{self.strategy_name} - Raw probabilities: {probs}")
                 logger.info(f"{self.strategy_name} - pred_class: {pred_class}, conf: {conf}") 
@@ -149,7 +160,7 @@ class StrategyTemplate:
                     decision_streak = 1  # reset if action changes
                 last_decision = decision
                 # Force a change if stuck too long
-                if decision_streak >= max_streak:
+                if decision_streak >= self.max_streak:
                     logger.info(f"Decision {decision} repeated {decision_streak} times — forcing change.")
                     if decision == "HOLD":
                         decision = random.choice(["BUY", "SELL"])
@@ -169,8 +180,8 @@ class StrategyTemplate:
 
                 # DETERMINE TRADE SIZE
                 current_price = get_latest_price(self.symbol_raw)
-                cash_balance = get_cash_balance(client, self.strategy_name, self.symbol)
-                qty = (cash_balance * self.allocation_pct * size_factor) / current_price if decision in ["BUY", "SELL"] else 0
+                portfolio_value = get_pv_value(client, self.strategy_name, self.symbol)
+                qty = (portfolio_value * self.allocation_pct * size_factor) / current_price if decision in ["BUY", "SELL"] else 0
 
                 # RECORD EXECUTION LOGIC
                 execution_logic = (

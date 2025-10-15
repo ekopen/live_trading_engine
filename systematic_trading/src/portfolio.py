@@ -76,3 +76,24 @@ def get_qty_balance(client, strategy_name, symbol):
         return quantity
     except Exception as e:
         logger.exception(f"Error retrieving quantity balance: {e}")
+    
+def get_pv_value(client, strategy_name, symbol):
+    try:
+        rows = client.query(f"""
+            SELECT portfolio_value 
+            FROM portfolio_db_key 
+            WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
+        """).result_rows
+        portfolio_value = rows[0][0]
+        return portfolio_value
+    except Exception as e:
+        logger.exception(f"Error retrieving portfolio value: {e}")
+
+def update_status(client, strategy_name, symbol, status):
+    try:
+        client.command(f"""
+            ALTER TABLE portfolio_db_key UPDATE status = '{status}'
+            WHERE symbol = '{symbol}' AND strategy_name = '{strategy_name}'
+        """)
+    except Exception as e:
+        logger.exception(f"Error updating portfolio status in ClickHouse: {e}")

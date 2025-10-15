@@ -63,7 +63,7 @@ def build_features(df):
     df = df.dropna()
     return df
 
-def get_ml_model(s3_key, local_path):
+def get_ml_model(s3_key, local_path, LSTM_flag):
     try:
         now = time.time()
 
@@ -77,11 +77,9 @@ def get_ml_model(s3_key, local_path):
         logger.info(f"Downloading model {s3_key} from S3...")
         s3.download_file(bucket_name, s3_key, local_path)
 
-        # choose loader based on file extension for lstm h5
-        _, ext = os.path.splitext(local_path)
-        if ext == ".h5":
+        if LSTM_flag:
             ml_model = load_model(local_path)
-        if ext == ".pkl":
+        else:
             ml_model = joblib.load(local_path)
 
         # update cache
