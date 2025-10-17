@@ -20,7 +20,7 @@ def load_dataset(path):
     y = df["label"]
     return X, y
 
-def train_and_eval(X, y, model, name, description, client, s3_key, retrain_interval):
+def train_and_eval(X, y, model, name, description, client, s3_key, retrain_interval, model_save_type):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, shuffle=False
     )
@@ -29,7 +29,7 @@ def train_and_eval(X, y, model, name, description, client, s3_key, retrain_inter
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
 
-    if "LSTM" in name:
+    if model_save_type == 'h5':
         X_train = np.expand_dims(X_train, axis=-1)
         X_test = np.expand_dims(X_test, axis=-1)
 
@@ -50,8 +50,7 @@ def train_and_eval(X, y, model, name, description, client, s3_key, retrain_inter
     client.insert('model_runs',
         [(name, description, s3_key, retrain_interval, train_acc, test_acc, precision, recall, f1)],
         column_names=['model_name', 'model_description', 's3_key', 'retrain_interval', 'train_accuracy', 'test_accuracy', 'precision', 'recall', 'f1'])     
-
-    
+        
 def upload_to_cloud(key):
     s3.upload_file(key, AWS_BUCKET, key)
     logger.info(f"Upload complete for {key} at s3://{AWS_BUCKET}/{key}")

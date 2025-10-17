@@ -66,6 +66,11 @@ def start_producer(SYMBOLS, API_KEY, stop_event):
         global ws
         while not stop_event.is_set():
             try:
+                if ws and ws.sock and ws.sock.connected:
+                    logger.warning("Existing WebSocket still connected — closing before reconnect.")
+                    ws.close()
+                    time.sleep(1)
+
                 ws = websocket.WebSocketApp(
                     f"wss://ws.finnhub.io?token={API_KEY}",
                     on_message=on_message,
@@ -81,8 +86,10 @@ def start_producer(SYMBOLS, API_KEY, stop_event):
             except Exception as e:
                 logger.exception(f"WebSocket crashed: {e}")
             if not stop_event.is_set():
-                logger.warning("WebSocket disconnected. Reconnecting in 10 seconds...")
-                time.sleep(10)
+                # reconnect after a short delay
+                delay = random.randint(10, 30)
+                logger.warning(f"WebSocket disconnected. Reconnecting in {delay}s...")
+                time.sleep(delay)
 
     # sub thread to keep the websocket alive
     threading.Thread(target=connect_ws, daemon=True).start()

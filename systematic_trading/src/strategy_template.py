@@ -55,7 +55,7 @@ class StrategyTemplate:
                 f"Current quantity of {self.symbol} is {qty}, executing a {decision}\n"
                 f"Model price: {current_price:.2f}"
             )
-            execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic) 
+            execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic, slippage_flag="N") 
             update_status(client, self.strategy_name, self.symbol, 'closed')
         except Exception as e:
             logger.exception(f"Error closing position for {self.symbol}, {self.strategy_name}: {e}")
@@ -76,7 +76,7 @@ class StrategyTemplate:
                     f"Buy-and-hold benchmark, model price: {current_price:.2f}"
                 )
 
-                execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic)
+                execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic, slippage_flag="N")
                 logger.info(f"{self.strategy_name} initial BUY executed for {self.symbol}. Holding position now.")
             else:
                 logger.info(f"{self.strategy_name} already holds {qty_owned} {self.symbol}. No further trades.")
@@ -190,7 +190,7 @@ class StrategyTemplate:
                 )
 
                 #SEND TRADE TO EXECTUION ENGINE
-                execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic)
+                execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic, slippage_flag="Y")
 
                 # TRADE FREQUENCY
                 if self.stop_event.wait(self.execution_frequency):

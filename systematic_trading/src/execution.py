@@ -15,7 +15,7 @@ def update_execution(client, symbol, execution_logic, quantity, model_price, exe
     except Exception as e:
         logger.exception(f"Error inserting updating execution records: {e}")
 
-def execute_trade(client, signal, model_price, qty, strategy_name, symbol, symbol_raw, execution_logic):
+def execute_trade(client, signal, model_price, qty, strategy_name, symbol, symbol_raw, execution_logic, slippage_flag):
     try:
         if signal == "BUY":
             direction = 1
@@ -37,8 +37,8 @@ def execute_trade(client, signal, model_price, qty, strategy_name, symbol, symbo
         if approval_status == "Y":
             # in a real system, this is where the order would be routed to the exchange/broker. to simulate real conditions, we just wait a second and get the latest price again
             time.sleep(1)
-            if strategy_name == 'Long Only':
-                execution_price = model_price  # simulate buy-and-hold execution at model price
+            if slippage_flag == "N":
+                execution_price = model_price  # simulate  execution at model price for long only/closing positions (for simplicity)
             else:
                 execution_price = get_latest_price(symbol_raw) # simulatedslippage conditions
             market_value_change = qty * direction * execution_price

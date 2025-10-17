@@ -6,6 +6,8 @@ from setup import clickhouse_client
 from features import get_data, build_features, create_labels
 from training import load_dataset, train_and_eval, upload_to_cloud
 from tensorflow.keras.models import save_model
+from tensorflow.keras import backend as K
+import gc
 import joblib
 import logging
 logger = logging.getLogger(__name__)
@@ -24,6 +26,15 @@ class ML_Model_Template:
         self.model_save_type = model_save_type  #h5 or pkl
         self.feature_dir = f'{FEATURE_DIR}/{self.model_name_key}-feature_data.parquet'
         self.model_dir = f'{MODEL_DIR}/{self.model_name_key}-model.{self.model_save_type}'
+    
+    def cleanup(self, client):
+        if self.model_save_type == 'h5':
+            K.clear_session()
+        if client:
+            try: client.close()
+            except: pass
+        del self.model
+        gc.collect()
 
     # saves a feature parquet locally for model training
     def create_feature_data(self):
@@ -48,7 +59,7 @@ class ML_Model_Template:
             if len(X) < 1440:  # at least 1 day of minute data to train
                 logger.warning(f"Not enough data to train {self.model_name_key}. Needed 1440 rows, got {len(X)}. Skipping training.")
                 return
-            train_and_eval(X, y, self.model,  self.model_name_key, self.model_description, client, self.model_dir, self.retrain_interval)
+            train_and_eval(X, y, self.model,  self.model_name_key, self.model_description, client, self.model_dir, self.retrain_interval, self.model_save_type)
             if self.model_save_type == 'h5':
                 self.model.model_.save(self.model_dir)
             elif self.model_save_type == 'pkl':
@@ -57,3 +68,6 @@ class ML_Model_Template:
             logger.info(f"Finished training model for {self.model_name_key}.")
         except Exception as e:
             logger.exception(f"Model training failed for {self.model_name_key}: {e}")
+        finally: # resource cleanup
+            self.cleanup(client)
+

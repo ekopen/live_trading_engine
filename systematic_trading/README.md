@@ -24,5 +24,4 @@ Continuously implements and runs machine learning–based trading algorithms, re
 
 ## Known Issues  
 - Closing positions currently relies on limit orders, which can leave small residual amounts invested due to slippage.
-- LTSM is currently not trading due to an incompatibility I use to get predictions from the ML models.  
 
