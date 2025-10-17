@@ -9,6 +9,7 @@ services:
       - "9000:9000"
     volumes:
       - clickhouse_data:/var/lib/clickhouse
+      - ./common/clickhouse-config/config.xml:/etc/clickhouse-server/config.d/memory.xml
     environment:
       CLICKHOUSE_USER: ${CLICKHOUSE_USERNAME}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
@@ -23,6 +24,9 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+    mem_limit: 3g
+    cpus: "2.0"
+
 
   # streaming data
   kafka:
@@ -79,6 +83,10 @@ services:
         max-size: "50m"
         max-file: "3"
 
+    mem_limit: 1.0g
+    cpus: "1.0"
+
+
   # modules
   market_data_stream:
     build:
@@ -97,6 +105,10 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+
+    mem_limit: 512m
+    cpus: "0.5"
+
 
   market_data_storage:
     build:
@@ -118,6 +130,10 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+
+    mem_limit: 1.5g
+    cpus: "1.0"
+
 
   ml_trading_strategies:
     build:
@@ -141,6 +157,11 @@ services:
         max-size: "50m"
         max-file: "3"
 
+    mem_limit: 512m
+    cpus: "0.5"
+
+
+
   systematic_trading:
     build:
       context: .
@@ -162,6 +183,9 @@ services:
         max-size: "50m"
         max-file: "3"
 
+    mem_limit: 512m
+    cpus: "0.5"
+
   # downstream monitoring
   # the "brain" to gather metrics
   prometheus:
@@ -172,12 +196,18 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
+    command:
+    - "--storage.tsdb.retention.time=7d"
+    - "--config.file=/etc/prometheus/prometheus.yml"
+    - "--storage.tsdb.path=/prometheus"
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
         max-file: "3"
+    mem_limit: 256m
+    cpus: "0.5"
 
   # dashboarding
   grafana:
@@ -206,6 +236,10 @@ services:
         max-size: "50m"
         max-file: "3"
 
+    mem_limit: 256m
+    cpus: "0.5"
+
+          
   # exporters for prometheus to scrape metrics from
   node_exporter:
     image: prom/node-exporter:latest
@@ -218,6 +252,9 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+    mem_limit: 256m
+    cpus: "0.5"
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
@@ -234,6 +271,9 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+    mem_limit: 256m
+    cpus: "0.5"
+
   kafka_exporter:
     image: danielqsj/kafka-exporter
     container_name: kafka_exporter
@@ -251,7 +291,9 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-        
+    mem_limit: 256m
+    cpus: "0.5"
+
 networks:
   default:
     name: trading_net

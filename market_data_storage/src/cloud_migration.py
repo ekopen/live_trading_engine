@@ -19,12 +19,11 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
         try:
             # establish cutoff time
             cutoff_time = datetime.now(timezone.utc) - timedelta(seconds=clickhouse_duration)
-            cutoff_ms = int(cutoff_time.timestamp() * 1000)
 
-            # get all old ticks and downsample
+            # get all old ticks
             old_ticks = ch_client.query(f'''
-                SELECT * FROM ticks_db
-                WHERE timestamp_ms < {cutoff_ms}
+                SELECT * FROM minute_bars_final
+                WHERE minute < {cutoff_time}
             ''').result_rows
             old_ticks_df = pd.DataFrame(old_ticks, columns=[
                 'timestamp', 'timestamp_ms', 'symbol', 'price', 'volume', 'received_at', 'insert_time'
@@ -34,7 +33,7 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
 
             # save parquet locally, then upload to cloud
             latest_file = f'parquet_data/ticks.parquet'
-            old_ticks_df.to_parquet(latest_file, index=False)
+            old_ticks_df.to_parquet(latest_file, index=False, engine="pyarrow", row_group_size=100000)
             s3_key = "ticks_data"
             try:
                 s3.upload_file(latest_file, BUCKET_NAME, s3_key)
@@ -44,8 +43,8 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
 
             # delete old data
             ch_client.command(f'''
-                ALTER TABLE ticks_db
-                DELETE WHERE timestamp_ms < {cutoff_ms}
+                ALTER TABLE minute_bars_final
+                DELETE WHERE minute < {cutoff_time}
             ''')
             logger.info("Deleted migrated records from ticks_db.")
 
