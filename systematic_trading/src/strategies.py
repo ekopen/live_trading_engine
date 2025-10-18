@@ -106,7 +106,7 @@ def get_strategies(stop_event):
             s3_key = "models/Random-Forest-ETH-model.pkl",
             local_path = "models/Random-Forest-ETH-model.pkl",
             LSTM_flag = False,
-            max_streak = 4
+            max_streak = 8
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -123,7 +123,7 @@ def get_strategies(stop_event):
             s3_key = "models/Gradient-Boosting-ETH-model.pkl",
             local_path = "models/Gradient-Boosting-ETH-model.pkl",
             LSTM_flag = False,
-            max_streak = 6
+            max_streak = 7
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -140,7 +140,7 @@ def get_strategies(stop_event):
             s3_key = "models/Logistic-Regression-ETH-model.pkl",
             local_path = "models/Logistic-Regression-ETH-model.pkl",
             LSTM_flag = False,
-            max_streak = 2
+            max_streak = 8
         ),
         StrategyTemplate(
             stop_event=stop_event,
@@ -174,7 +174,7 @@ def get_strategies(stop_event):
             s3_key = "models/SVM-(RBF-Kernel)-ETH-model.pkl",
             local_path = "models/SVM-(RBF-Kernel)-ETH-model.pkl",
             LSTM_flag = False,
-            max_streak = 4
+            max_streak = 6
         ),
         
     ]
