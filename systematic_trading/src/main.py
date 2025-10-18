@@ -50,8 +50,10 @@ if __name__ == "__main__":
 
         # start trading strategies
         all_threads = []
-        for strat in strategy_arr:
-            all_threads.extend(strat.run_strategy())
+        for i, strat in enumerate(strategy_arr):    
+            threads = strat.run_strategy()
+            all_threads.extend(threads)
+            time.sleep(5)  # stagger startups
 
         while not stop_event.is_set():
             time.sleep(1)

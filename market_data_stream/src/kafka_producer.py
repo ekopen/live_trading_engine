@@ -1,7 +1,8 @@
 # kafka_producer.py
 # starts the kafka producer and integrates it with Finnhub's API/Websocket
 
-from config import KAFKA_BOOTSTRAP_SERVER
+import os, random
+from config import KAFKA_BOOTSTRAP_SERVER, WATCHDOG_TIMEOUT
 from kafka import KafkaProducer
 import json, websocket, time, threading, logging
 from datetime import datetime, timezone
@@ -97,11 +98,15 @@ def start_producer(SYMBOLS, API_KEY, stop_event):
     try:
         while not stop_event.is_set(): # keep the producer running
             # hearbeat watchdog
-            if time.time() - last_message_time > 60:
-                logger.warning("No data for 60s, restarting WebSocket...")
-                if ws: ws.close()
-                producer = make_producer()
-                last_message_time = time.time()
+            if time.time() - last_message_time > WATCHDOG_TIMEOUT:
+                logger.error(f"No data for {WATCHDOG_TIMEOUT} seconds, restarting WebSocket...")
+                try:
+                    if ws: ws.close()
+                    producer.flush(timeout=5)
+                    producer.close(timeout=5)
+                except Exception:
+                    logger.exception("Error during shutdown before restart")
+                os._exit(0) # force restart via container orchestration
             time.sleep(1)
     finally:
         logger.info("Shutting down producer.")

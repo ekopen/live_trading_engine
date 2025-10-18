@@ -31,26 +31,29 @@ class StrategyTemplate:
         self.max_streak = max_streak
 
     def start_portfolio_monitoring(self):
-        logger.info(f"Beginning position monitoring for {self.symbol}, {self.strategy_name}.")
+        logger.info(f"Beginning position monitoring for {self.strategy_name} - {self.symbol}.")
         try:
             client = clickhouse_client()
             portfolio_monitoring(self.stop_event, self.monitor_frequency, self.symbol, self.symbol_raw, self.strategy_name, client)
         except Exception as e:
-            logger.exception(f"Error beginning position monitoring for {self.symbol}, {self.strategy_name}: {e}")
+            logger.exception(f"Error beginning position monitoring or {self.strategy_name} - {self.symbol}: {e}")
 
     def close_position(self, client):
-        logger.info(f"Closing position for {self.symbol}, {self.strategy_name}.")
+        logger.info(f"Closing position for {self.strategy_name} - {self.symbol}.")
         try:
             signal = "CLOSE"
             qty = get_qty_balance(client, self.strategy_name, self.symbol)
             current_price = get_market_value(client, self.strategy_name, self.symbol) / qty if qty !=0 else 0
             execute_trade(client, signal, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw) 
             update_status(client, self.strategy_name, self.symbol, 'closed')
+            logger.info(f"Position closed for {self.strategy_name} - {self.symbol}.")
+            return
         except Exception as e:
-            logger.exception(f"Error closing position for {self.symbol}, {self.strategy_name}: {e}")
+            logger.exception(f"Error closing position for {self.strategy_name} - {self.symbol}: {e}")
+            time.sleep(5) 
         
     def long_only_strategy(self, client):
-        logger.info(f"Running Long Only buy-and-hold strategy for {self.symbol}, {self.strategy_name}.")
+        logger.info(f"Running Long Only buy-and-hold strategy for {self.strategy_name} - {self.symbol}.")
         update_status(client, self.strategy_name, self.symbol, 'active')
         try:
             current_price = get_latest_price(self.symbol_raw)
@@ -61,22 +64,22 @@ class StrategyTemplate:
                 qty = (cash_balance * self.allocation_pct) / current_price
 
                 execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw)
-                logger.info(f"{self.strategy_name} initial BUY executed for {self.symbol}. Holding position now.")
+                logger.info(f"Initial BUY executed for {self.strategy_name} - {self.symbol}. Holding position now.")
             else:
-                logger.info(f"{self.strategy_name} already holds {qty_owned} {self.symbol}. No further trades.")
+                logger.info(f"{qty_owned} already held by {self.strategy_name} - {self.symbol}. No further trades.")
             
             while not self.stop_event.is_set():
                 if self.stop_event.wait(self.execution_frequency):
                     break
 
         except Exception as e:
-            logger.exception(f"Error in Long Only strategy for {self.symbol}: {e}")
+            logger.exception(f"Error in {self.strategy_name} - {self.symbol} strategy: {e}")
         finally:
             self.close_position(client)
-            logger.info(f"Long Only strategy shutting down for {self.symbol}.")
+            logger.info(f"Shut down strategy for {self.strategy_name} - {self.symbol}.")
 
     def ml_strategy(self, client):
-        logger.info(f"Beginning strategy signal generation for {self.symbol}, {self.strategy_name}.")
+        logger.info(f"Beginning strategy signal generation for {self.strategy_name} - {self.symbol}.")
         update_status(client, self.strategy_name, self.symbol, 'active')
         # because I am having trouble with the ml models getting stuck in a loop of same signal, adding a manual override to show activity
         last_signal = None
@@ -116,7 +119,7 @@ class StrategyTemplate:
                     conf = np.max(probs)
 
                 except Exception as e:
-                    logger.warning(f"Model prediction failed for {self.symbol} {self.strategy_name}: {e}")
+                    logger.warning(f"Model prediction failed for {self.strategy_name} - {self.symbol}: {e}")
                     if self.stop_event.wait(self.execution_frequency):
                         break
                     continue
@@ -157,12 +160,24 @@ class StrategyTemplate:
                     size_factor = 0.25 / (signal_streak)   
 
                 # DETERMINE TRADE SIZE
-                current_price = get_latest_price(self.symbol_raw)
-                portfolio_value = get_pv_value(client, self.strategy_name, self.symbol)
-                qty = (portfolio_value * self.allocation_pct * size_factor) / current_price if signal in ["BUY", "SELL"] else 0
+                try:
+                    current_price = get_latest_price(self.symbol_raw)
+                    portfolio_value = get_pv_value(client, self.strategy_name, self.symbol)
+                    qty = (portfolio_value * self.allocation_pct * size_factor) / current_price if signal in ["BUY", "SELL"] else 0
+                except Exception as e:
+                    logger.warning(f"Trade size determination failed for {self.strategy_name} - {self.symbol}: {e}")
+                    if self.stop_event.wait(self.execution_frequency):
+                        break
+                    continue
 
                 #SEND TRADE TO EXECTUION ENGINE
-                execute_trade(client, signal, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw)
+                try:
+                    execute_trade(client, signal, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw)
+                except Exception as e:
+                    logger.warning(f"Trade size execution failed for {self.strategy_name} - {self.symbol}: {e}")
+                    if self.stop_event.wait(self.execution_frequency):
+                        break
+                    continue
 
                 # TRADE FREQUENCY
                 if self.stop_event.wait(self.execution_frequency):
@@ -172,10 +187,10 @@ class StrategyTemplate:
             logger.exception(f"Error in {self.strategy_name} - {self.symbol} strategy: {e}")
         finally:
             self.close_position(client)
-            logger.info(f"{self.strategy_name} strategy shutting down for {self.symbol}.")
+            logger.info(f"Shut down strategy for {self.strategy_name} - {self.symbol}.")
 
     def run_strategy(self):
-        logger.info(f"Running strategy for {self.symbol}, {self.strategy_name}.")
+        logger.info(f"Running strategy {self.strategy_name} - {self.symbol} strategy.")
         try:
             client = clickhouse_client()
             t1 = threading.Thread(target=self.start_portfolio_monitoring, daemon=True)
@@ -187,5 +202,5 @@ class StrategyTemplate:
             t2.start()
             return [t1, t2]
         except Exception as e:
-            logger.exception(f"Error running strategy for {self.symbol}, {self.strategy_name}: {e}")
+            logger.exception(f"Error running strategy for {self.strategy_name} - {self.symbol} strategy: {e}")
             return []

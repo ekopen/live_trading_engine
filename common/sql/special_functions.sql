@@ -19,6 +19,9 @@ VALUES
 -- test
 SELECT * FROM portfolio_db_key;
 
+-- ts
+TRUNCATE TABLE portfolio_db_ts
+
 -- backfill
 INSERT INTO minute_bars
 SELECT

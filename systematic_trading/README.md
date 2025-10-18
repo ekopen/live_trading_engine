@@ -15,10 +15,15 @@ Continuously implements and runs machine learning–based trading algorithms, re
 
 ## Future Improvements  
 - Expand tracking of portfolio metrics. Add more risk measures (e.g., Value at Risk, maximum drawdown) and incorporate ratios like Sharpe, as well as cost-based metrics (e.g., cost per trade).  
+- Track drawdown of long only positions on a regular basis to close if needed
+- Fix sloppiness of differentiating between long/ml strategies when passing through trades to execution, add a risk check/slippage flag
 - Improve slippage modeling. Currently, only a time delay is simulated—consider integrating a paper trading platform for more realistic execution behavior.  
 - Introduce market orders. The module currently supports only limit orders, which can cause slight inaccuracies in position entry and exit.  
 - Enable model refreshes to be triggered by signals (pings) from the ML Trading Strategies module instead of a fixed time schedule.  
 - Enhance portfolio initialization and shutdown logic to reconcile simulated portfolios with actual paper trading accounts.
 - Create a flag for up/down per strategy.
+
+## Known Isues
+- This code is a bit sloppy. When I have time, I need to organize it better to make more sense at first glance.
 
 

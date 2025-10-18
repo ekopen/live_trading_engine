@@ -44,14 +44,14 @@ def portfolio_monitoring(stop_event, frequency, symbol, symbol_raw, strategy_nam
                 )
 
         except Exception as e:
-            logger.exception(f"Error during portfolio monitoring iteration: {e}")
+            logger.exception(f"Error during portfolio monitoring iteration for {strategy_name} - {symbol}: {e}")
 
         time.sleep(frequency)
 
     try:
         logger.info("Portfolio monitoring shutting down.")
     except Exception as e:
-        logger.exception(f"Error during portfolio monitoring shutdown: {e}")
+        logger.exception(f"Error during portfolio monitoring shutdown for {strategy_name} - {symbol}: {e}")
 
 def get_cash_balance(client, strategy_name, symbol):
     try:
@@ -63,7 +63,7 @@ def get_cash_balance(client, strategy_name, symbol):
         cash_balance = rows[0][0]
         return cash_balance
     except Exception as e:
-        logger.exception(f"Error retrieving cash balance: {e}")
+        logger.exception(f"Error retrieving cash balance for {strategy_name} - {symbol}: {e}")
 
 def get_qty_balance(client, strategy_name, symbol):
     try:
@@ -75,7 +75,7 @@ def get_qty_balance(client, strategy_name, symbol):
         quantity = rows[0][0]
         return quantity
     except Exception as e:
-        logger.exception(f"Error retrieving quantity balance: {e}")
+        logger.exception(f"Error retrieving quantity balance for {strategy_name} - {symbol}: {e}")
     
 def get_pv_value(client, strategy_name, symbol):
     try:
@@ -87,7 +87,7 @@ def get_pv_value(client, strategy_name, symbol):
         portfolio_value = rows[0][0]
         return portfolio_value
     except Exception as e:
-        logger.exception(f"Error retrieving portfolio value: {e}")
+        logger.exception(f"Error retrieving portfolio value for {strategy_name} - {symbol}: {e}")
     
 def get_market_value(client, strategy_name, symbol):
     try:
@@ -99,7 +99,7 @@ def get_market_value(client, strategy_name, symbol):
         market_value = rows[0][0]
         return market_value
     except Exception as e:
-        logger.exception(f"Error retrieving market value: {e}")
+        logger.exception(f"Error retrieving market value for {strategy_name} - {symbol}: {e}")
 
 def update_status(client, strategy_name, symbol, status):
     try:
@@ -108,4 +108,4 @@ def update_status(client, strategy_name, symbol, status):
             WHERE symbol = '{symbol}' AND strategy_name = '{strategy_name}'
         """)
     except Exception as e:
-        logger.exception(f"Error updating portfolio status in ClickHouse: {e}")
+        logger.exception(f"Error updating portfolio status in ClickHouse for {strategy_name} - {symbol}: {e}")

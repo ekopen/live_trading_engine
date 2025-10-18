@@ -13,7 +13,7 @@ def update_execution(client, symbol, signal, quantity, model_price, execution_pr
         column_names = ["symbol", "signal", "quantity", "model_price","executed_price", "strategy_name", "approval_status", "approval_comment"]
         client.insert("execution_db", [arr], column_names)
     except Exception as e:
-        logger.exception(f"Error inserting updating execution records: {e}")
+        logger.exception(f"Error inserting updating execution records for {strategy_name} - {symbol}: {e}")
 
 def execute_trade(client, signal, model_price, qty, strategy_name, symbol, symbol_raw):
     try:
@@ -51,8 +51,9 @@ def execute_trade(client, signal, model_price, qty, strategy_name, symbol, symbo
             market_value_change = quantity_change * execution_price
             portfolio_key_order_update(client, symbol, quantity_change, market_value_change , strategy_name)
             update_execution(client, symbol, signal, quantity_change, model_price, execution_price, strategy_name, approval_status, approval_comment)
+            logger.info(f"Executed {signal} for {strategy_name} - {symbol}: Qty {quantity_change} at Price {execution_price:.2f}")
         if approval_status == "N":
             update_execution(client, symbol, signal, quantity_change, model_price, None, strategy_name, approval_status, approval_comment)
             
     except Exception as e:
-        logger.exception(f"Error executing trade: {e}")
+        logger.exception(f"Error executing trade for {strategy_name} - {symbol}: {e}")
