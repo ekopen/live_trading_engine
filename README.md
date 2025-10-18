@@ -16,5 +16,6 @@ The system is containerized using Docker and currently deployed on a DigitalOcea
 
 ## Future Improvements  
 - Implement Kubernetes for automatic resource scaling and orchestration.  
-- Consolidate configuration into a single master config file, with modular JSON files defining various ML models and trading strategies.
+- Consolidate configuration into a single master config file, with modular JSON files defining various ML models and trading strategies. This wil help turn them on/off.
 - Add unit tests.  
+- Add Grafana alerts for module health.

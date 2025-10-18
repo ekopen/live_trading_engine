@@ -16,11 +16,10 @@ def check_position_size(client, symbol, qty, direction, price, strategy_name, ma
             FROM portfolio_db_key 
             WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
         """).result_rows
+        if not rows or rows[0] is None:
+            return False, "Portfolio not initialized for position size check"
         portfolio_value , current_qty = rows[0]
         trade_value = abs(qty * price)
-
-        if (current_qty > 0 and direction == -1) or (current_qty < 0 and direction == 1):
-            return True, "Closing/reducing position — bypass ..."
 
         if trade_value > max_allocation * portfolio_value:
             msg = f"Trade value {trade_value:.2f} exceeds max allocation {max_allocation*100:.1f}% of portfolio {portfolio_value:.2f}"
@@ -38,9 +37,6 @@ def check_cash_balance(client, qty, direction, price, strategy_name, symbol):
         trade_cost = qty * price * direction
         current_qty = get_qty_balance(client, strategy_name, symbol)
 
-        if (current_qty > 0 and direction == -1) or (current_qty < 0 and direction == 1):
-            return True, "Closing/reducing position — bypass ..."
-
         if direction == 1 and trade_cost > cash_balance:
             msg = f"Not enough cash. Needed {trade_cost:.2f}, available {cash_balance:.2f}"
             logger.warning(msg)
@@ -51,7 +47,6 @@ def check_cash_balance(client, qty, direction, price, strategy_name, symbol):
     return True, "Cash balance ok"
 
 def check_qty_balance(client, qty, direction, price, strategy_name, symbol):
-    logger.info("Checking quantity balance for trade.")
     try:
         quantity = get_qty_balance(client, strategy_name, symbol)
         traded_qty = qty * direction
@@ -83,6 +78,8 @@ def check_max_drawdown(client, strategy_name, symbol, max_drawdown=MAX_DRAWDOWN)
                  ORDER BY time DESC LIMIT 1) AS latest_val
             SELECT min_val, max_val, latest_val
         """).result_rows
+        if not rows or rows[0] is None:
+            return False, "Portfolio not initialized for position size check"
 
         if rows:
             min_val, max_val, latest_val = rows[0]
@@ -99,18 +96,22 @@ def check_max_drawdown(client, strategy_name, symbol, max_drawdown=MAX_DRAWDOWN)
 
 
 def run_risk_checks(client, symbol, qty, direction, model_price, strategy_name):
-    checks = [
-        check_position_size(client, symbol, qty, direction, model_price, strategy_name),
-        check_cash_balance(client, qty, direction,
-         model_price, strategy_name, symbol),
-        check_qty_balance(client, qty, direction,
-         model_price, strategy_name, symbol),
-        check_max_drawdown(client, strategy_name, symbol)
-    ]
+    try:
+        checks = [
+            check_position_size(client, symbol, qty, direction, model_price, strategy_name),
+            check_cash_balance(client, qty, direction,
+            model_price, strategy_name, symbol),
+            check_qty_balance(client, qty, direction,
+            model_price, strategy_name, symbol),
+            check_max_drawdown(client, strategy_name, symbol)
+        ]
 
-    failures = []
-    for success, msg in checks:
-        if not success:
-            failures.append(msg)
-    all_passed = len(failures) == 0
-    return all_passed, failures
+        failures = []
+        for success, msg in checks:
+            if not success:
+                failures.append(msg)
+        all_passed = len(failures) == 0
+        return all_passed, failures
+    except Exception as e:
+        logger.exception(f"Error running risk checks: {e}")
+        return False, ["Error in risk checks"]

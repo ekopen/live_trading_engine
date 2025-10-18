@@ -1,4 +1,3 @@
-
 # ml_function.py
 # fetches ml models and generates feature data for them
 
@@ -13,55 +12,63 @@ cached_models = {}
 last_refresh_times = {}
 
 def get_production_data(client, symbol):
-    df = client.query_df(f"""
-        SELECT minute, open as price
-        FROM minute_bars_final
-        WHERE symbol = '{symbol}'        
-        ORDER BY minute ASC
-        LIMIT 120                      
-    """)
-    return df
+    try:
+        df = client.query_df(f"""
+            SELECT minute, open as price
+            FROM minute_bars_final
+            WHERE symbol = '{symbol}'        
+            ORDER BY minute ASC
+            LIMIT 120                      
+        """)
+        return df
+    except Exception as e:
+        logger.exception(f"Error fetching production data for {symbol}: {e}")
+        return None
 
 def build_features(df):
-    # standard features
-    df["returns"] = df["price"].pct_change()
-    df["sma_30"] = df["price"].rolling(window=30).mean()
-    df["sma_60"] = df["price"].rolling(window=60).mean()
-    df["momentum_10"] = df["price"] / df["price"].shift(10) - 1
-    df["momentum_30"] = df["price"] / df["price"].shift(30) - 1
-    df["volatility_30"] = df["returns"].rolling(window=30).std()
-    for lag in [1, 2, 5]:
-        df[f"lag_return_{lag}"] = df["returns"].shift(lag)
+    try:
+        # standard features
+        df["returns"] = df["price"].pct_change()
+        df["sma_30"] = df["price"].rolling(window=30).mean()
+        df["sma_60"] = df["price"].rolling(window=60).mean()
+        df["momentum_10"] = df["price"] / df["price"].shift(10) - 1
+        df["momentum_30"] = df["price"] / df["price"].shift(30) - 1
+        df["volatility_30"] = df["returns"].rolling(window=30).std()
+        for lag in [1, 2, 5]:
+            df[f"lag_return_{lag}"] = df["returns"].shift(lag)
 
-    # RSI
-    delta = df["price"].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs = gain / loss
-    df["rsi_14"] = 100 - (100 / (1 + rs))
+        # RSI
+        delta = df["price"].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        df["rsi_14"] = 100 - (100 / (1 + rs))
 
-    # MACD
-    ema12 = df["price"].ewm(span=12, adjust=False).mean()
-    ema26 = df["price"].ewm(span=26, adjust=False).mean()
-    df["macd"] = ema12 - ema26
-    df["macd_signal"] = df["macd"].ewm(span=9, adjust=False).mean()
+        # MACD
+        ema12 = df["price"].ewm(span=12, adjust=False).mean()
+        ema26 = df["price"].ewm(span=26, adjust=False).mean()
+        df["macd"] = ema12 - ema26
+        df["macd_signal"] = df["macd"].ewm(span=9, adjust=False).mean()
 
-    # STATIONARY FEATURES
-    df["price_change"] = df["price"].diff()
-    df["sma_ratio"] = df["sma_30"] / df["sma_60"] - 1
-    df["macd_diff"] = df["macd"] - df["macd_signal"]
+        # STATIONARY FEATURES
+        df["price_change"] = df["price"].diff()
+        df["sma_ratio"] = df["sma_30"] / df["sma_60"] - 1
+        df["macd_diff"] = df["macd"] - df["macd_signal"]
 
-    # Smoothed return signal
-    df["ema_return_10"] = df["returns"].ewm(span=10, adjust=False).mean()
+        # Smoothed return signal
+        df["ema_return_10"] = df["returns"].ewm(span=10, adjust=False).mean()
 
-    # Rolling z-score of returns
-    df["zscore_30"] = (df["returns"] - df["returns"].rolling(30).mean()) / df["returns"].rolling(30).std()
+        # Rolling z-score of returns
+        df["zscore_30"] = (df["returns"] - df["returns"].rolling(30).mean()) / df["returns"].rolling(30).std()
 
-    # Directional signal (momentum vs volatility)
-    df["dir_strength"] = df["momentum_10"] / (df["volatility_30"] + 1e-8)
-        
-    df = df.dropna()
-    return df
+        # Directional signal (momentum vs volatility)
+        df["dir_strength"] = df["momentum_10"] / (df["volatility_30"] + 1e-8)
+            
+        df = df.dropna()
+        return df
+    except Exception as e:
+        logger.exception(f"Error building features: {e}")
+        return None
 
 def get_ml_model(s3_key, local_path, LSTM_flag):
     try:

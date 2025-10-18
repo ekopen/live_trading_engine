@@ -16,6 +16,5 @@ Continuously trains an array of machine learning models on recent market data, r
 - Implement a notification system that pings the **Systematic Trading** module whenever a new model is trained.  
 - Migrate model documentation to JSON files so updates don’t require rerunning Python scripts.  
 
-## Known Issues  
-- LSTM training may experience issues due to the use of a 2D dataset.  
+## Known Issues   
 - Models can occasionally develop runaway biases (favoring persistent buy/sell signals) or hold positions indefinitely. Implement additional training logic to promote balanced decision-making.  

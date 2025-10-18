@@ -4,7 +4,7 @@
 import threading, logging, time, os, random
 import numpy as np
 from data import get_latest_price, clickhouse_client
-from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance, get_pv_value, update_status
+from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance, get_pv_value, update_status, get_market_value
 from ml_functions import get_production_data, build_features, get_ml_model
 from execution import execute_trade
 logger = logging.getLogger(__name__)
@@ -41,21 +41,10 @@ class StrategyTemplate:
     def close_position(self, client):
         logger.info(f"Closing position for {self.symbol}, {self.strategy_name}.")
         try:
-            current_price = get_latest_price(self.symbol_raw)
+            signal = "CLOSE"
             qty = get_qty_balance(client, self.strategy_name, self.symbol)
-            if qty < 0:
-                decision = "BUY"
-            elif qty > 0:
-                decision = "SELL"
-            else:
-                decision = "HOLD"
-            qty = abs(qty)
-            execution_logic = (
-                f"Closing position for: {self.strategy_name} - {self.symbol}\n"
-                f"Current quantity of {self.symbol} is {qty}, executing a {decision}\n"
-                f"Model price: {current_price:.2f}"
-            )
-            execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic, slippage_flag="N") 
+            current_price = get_market_value(client, self.strategy_name, self.symbol) / qty if qty !=0 else 0
+            execute_trade(client, signal, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw) 
             update_status(client, self.strategy_name, self.symbol, 'closed')
         except Exception as e:
             logger.exception(f"Error closing position for {self.symbol}, {self.strategy_name}: {e}")
@@ -71,12 +60,7 @@ class StrategyTemplate:
 
                 qty = (cash_balance * self.allocation_pct) / current_price
 
-                execution_logic = (
-                    f"{self.strategy_name} - {self.symbol} decision: BUY\n"
-                    f"Buy-and-hold benchmark, model price: {current_price:.2f}"
-                )
-
-                execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic, slippage_flag="N")
+                execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw)
                 logger.info(f"{self.strategy_name} initial BUY executed for {self.symbol}. Holding position now.")
             else:
                 logger.info(f"{self.strategy_name} already holds {qty_owned} {self.symbol}. No further trades.")
@@ -94,9 +78,9 @@ class StrategyTemplate:
     def ml_strategy(self, client):
         logger.info(f"Beginning strategy signal generation for {self.symbol}, {self.strategy_name}.")
         update_status(client, self.strategy_name, self.symbol, 'active')
-        # because I am having trouble with the ml models getting stuck in a loop of same decision, adding a manual override to show activity
-        last_decision = None
-        decision_streak = 1
+        # because I am having trouble with the ml models getting stuck in a loop of same signal, adding a manual override to show activity
+        last_signal = None
+        signal_streak = 1
         try:
             while not self.stop_event.is_set():
                 # RESET LOGIC
@@ -107,25 +91,19 @@ class StrategyTemplate:
                     continue
 
                 # GET PRODUCTION DATA
-                prod_df = get_production_data(client, self.symbol_raw)
-                feature_df = build_features(prod_df)
-                feature_df_clean = feature_df.drop(columns=["price", "minute"]).tail(1)
-                if feature_df_clean.empty:
-                    logger.warning(f"Feature dataframe for {self.symbol} is empty after cleaning. Skipping iteration.")
+                try:
+                    prod_df = get_production_data(client, self.symbol_raw)
+                    feature_df = build_features(prod_df)
+                    feature_df_clean = feature_df.drop(columns=["price", "minute"]).tail(1)
+                except Exception as e:
+                    logger.warning(f"Error building features for {self.symbol} {self.strategy_name}: {e}")
                     if self.stop_event.wait(self.execution_frequency):
                         break
                     continue
 
                 # GET MODEL
-                ml_model = get_ml_model(self.s3_key, self.local_path, self.LSTM_flag)
-                if ml_model is None:
-                    logger.warning(f"No ML model found for {self.symbol}. Skipping iteration.")
-                    if self.stop_event.wait(self.execution_frequency):
-                        break
-                    continue
-
-                # get probabilities to scale qty size based on confidence
                 try:
+                    ml_model = get_ml_model(self.s3_key, self.local_path, self.LSTM_flag)
                     if not self.LSTM_flag: # non LSTM case
                         probs = ml_model.predict_proba(feature_df_clean.values)[0]
                     else: # LSTM case
@@ -143,54 +121,48 @@ class StrategyTemplate:
                         break
                     continue
 
-                logger.info(f"{self.strategy_name} - Raw probabilities: {probs}")
-                logger.info(f"{self.strategy_name} - pred_class: {pred_class}, conf: {conf}") 
+                # logger.info(f"{self.strategy_name} - Raw probabilities: {probs}")
+                # logger.info(f"{self.strategy_name} - pred_class: {pred_class}, conf: {conf}") 
 
-                # Map to decision
+                # Map to signal
                 if pred_class == 2:
-                    decision = "BUY"
+                    signal = "BUY"
                 elif pred_class == 0:
-                    decision = "SELL"
+                    signal = "SELL"
                 else:
-                    decision = "HOLD"
+                    signal = "HOLD"
                 # Track consecutive same actions
-                if decision == last_decision:
-                    decision_streak += 1
+                if signal == last_signal:
+                    signal_streak += 1
                 else:
-                    decision_streak = 1  # reset if action changes
-                last_decision = decision
+                    signal_streak = 1  # reset if action changes
+                last_signal = signal
                 # Force a change if stuck too long
-                if decision_streak >= self.max_streak:
-                    logger.info(f"Decision {decision} repeated {decision_streak} times — forcing change.")
-                    if decision == "HOLD":
-                        decision = random.choice(["BUY", "SELL"])
-                    elif decision == "BUY":
-                        decision = "SELL"
+                if signal_streak >= self.max_streak:
+                    logger.info(f"Signal {signal} repeated {signal_streak} times — forcing change.")
+                    if signal == "HOLD":
+                        signal = random.choice(["BUY", "SELL"])
+                    elif signal == "BUY":
+                        signal = "SELL"
                     else:
-                        decision = "BUY"
-                    decision_streak = 1
+                        signal = "BUY"
+                    signal_streak = 1
                 
-                # adjust for confidence interval, scaled by decision streak
+                # adjust for confidence interval, scaled by signal streak
                 if conf > 0.7:
-                    size_factor = 1.0 / decision_streak     
+                    size_factor = 1.0 / (signal_streak)     
                 elif conf > 0.55:
-                    size_factor = 0.5 / decision_streak      
+                    size_factor = 0.5 / (signal_streak)      
                 else:
-                    size_factor = 0.25 / decision_streak   
+                    size_factor = 0.25 / (signal_streak)   
 
                 # DETERMINE TRADE SIZE
                 current_price = get_latest_price(self.symbol_raw)
                 portfolio_value = get_pv_value(client, self.strategy_name, self.symbol)
-                qty = (portfolio_value * self.allocation_pct * size_factor) / current_price if decision in ["BUY", "SELL"] else 0
-
-                # RECORD EXECUTION LOGIC
-                execution_logic = (
-                    f"{self.strategy_name} - {self.symbol} decision: {decision}\n"
-                    f"Model price: {current_price:.2f}"
-                )
+                qty = (portfolio_value * self.allocation_pct * size_factor) / current_price if signal in ["BUY", "SELL"] else 0
 
                 #SEND TRADE TO EXECTUION ENGINE
-                execute_trade(client, decision, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw, execution_logic, slippage_flag="Y")
+                execute_trade(client, signal, current_price, qty, self.strategy_name, self.symbol, self.symbol_raw)
 
                 # TRADE FREQUENCY
                 if self.stop_event.wait(self.execution_frequency):

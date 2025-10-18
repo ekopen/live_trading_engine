@@ -17,5 +17,4 @@ Configures a Kafka producer that captures real-time market data from a WebSocket
 - Implement Kafka partitioning and schema management to improve scalability as data volume increases.  
 
 ## Known Issues  
-- Add a **Grafana alert** to notify if the stream goes down.  
-- Reconfigure **Docker** so dependent services shut down gracefully if the stream becomes unavailable.  
+- Reconfigure Docker so dependent services shut down gracefully if the stream becomes unavailable.  

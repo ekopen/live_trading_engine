@@ -88,6 +88,18 @@ def get_pv_value(client, strategy_name, symbol):
         return portfolio_value
     except Exception as e:
         logger.exception(f"Error retrieving portfolio value: {e}")
+    
+def get_market_value(client, strategy_name, symbol):
+    try:
+        rows = client.query(f"""
+            SELECT market_value 
+            FROM portfolio_db_key 
+            WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
+        """).result_rows
+        market_value = rows[0][0]
+        return market_value
+    except Exception as e:
+        logger.exception(f"Error retrieving market value: {e}")
 
 def update_status(client, strategy_name, symbol, status):
     try:

@@ -1,4 +1,6 @@
 -- initialize balances
+TRUNCATE TABLE portfolio_db_key
+
 INSERT INTO portfolio_db_key 
 (cash_balance, symbol, quantity, market_value, portfolio_value, strategy_name, strategy_description, status)
 VALUES
@@ -14,6 +16,8 @@ VALUES
 (200000, 'ETH', 0, 0, 200000, 'LSTM', 'Captures temporal dependencies and sequential patterns in data.', 'closed'),
 (200000, 'ETH', 0, 0, 200000, 'SVM', 'Separates classes using non-linear decision boundaries.', 'closed');
 
+-- test
+SELECT * FROM portfolio_db_key;
 
 -- backfill
 INSERT INTO minute_bars

@@ -14,6 +14,3 @@ Captures market data from a Kafka consumer and stores it in a **ClickHouse** dat
 
 ## Future Improvements  
 - Transition from ClickHouse batch inserts to the **ClickHouse Kafka engine** for more efficient, real-time ingestion.  
-
-## Known Issues  
-- N/A  
