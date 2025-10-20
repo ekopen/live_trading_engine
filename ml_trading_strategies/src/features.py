@@ -3,14 +3,15 @@
 import logging
 logger = logging.getLogger(__name__)
 
-# this will have access to about a weeks worth of data
-# should yield ~ 10k rows to train on
 def get_data(client, symbol): 
     df = client.query_df(f"""
-        SELECT minute, open as price
-        FROM minute_bars_final
+        SELECT
+            minute,
+            anyHeavyMerge(open)   AS price
+        FROM minute_bars
         WHERE symbol = '{symbol}'
-        ORDER BY minute ASC                             
+        GROUP BY minute
+        ORDER BY minute ASC
     """)
     return df
 

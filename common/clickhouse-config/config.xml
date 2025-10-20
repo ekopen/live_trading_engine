@@ -1,9 +1,9 @@
 <yandex>
   <profiles>
     <default>
-      <max_memory_usage>3G</max_memory_usage>
-      <max_memory_usage_for_user>3G</max_memory_usage_for_user>
-      <max_memory_usage_for_all_queries>3G</max_memory_usage_for_all_queries>
+      <max_memory_usage>4832838208</max_memory_usage>
+      <max_memory_usage_for_user>4832838208</max_memory_usage_for_user>
+      <max_memory_usage_for_all_queries>4832838208</max_memory_usage_for_all_queries>
       <max_threads>4</max_threads>
     </default>
   </profiles>

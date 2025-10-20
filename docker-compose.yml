@@ -24,7 +24,7 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    mem_limit: 3g
+    mem_limit: 4.5g
     cpus: "2.0"
 
 
@@ -86,7 +86,6 @@ services:
     mem_limit: 1.0g
     cpus: "1.0"
 
-
   # modules
   market_data_stream:
     build:
@@ -106,9 +105,8 @@ services:
         max-size: "50m"
         max-file: "3"
 
-    mem_limit: 512m
+    mem_limit: 256m
     cpus: "0.5"
-
 
   market_data_storage:
     build:
@@ -131,9 +129,8 @@ services:
         max-size: "50m"
         max-file: "3"
 
-    mem_limit: 1.5g
+    mem_limit: 512m
     cpus: "1.0"
-
 
   ml_trading_strategies:
     build:
@@ -148,8 +145,8 @@ services:
         condition: service_healthy
     volumes:
       - ./common/logs/ml_trading_strategies:/app/logs
-      - ./ml_trading_strategies/models:/app/models
       - ./ml_trading_strategies/feature_data:/app/feature_data
+      - ./common/models:/app/models
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -159,8 +156,6 @@ services:
 
     mem_limit: 512m
     cpus: "0.5"
-
-
 
   systematic_trading:
     build:
@@ -175,7 +170,7 @@ services:
         condition: service_healthy
     volumes:
       - ./common/logs/systematic_trading:/app/logs
-      - ./systematic_trading/models:/app/models
+      - ./common/models:/app/models
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -252,7 +247,7 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    mem_limit: 256m
+    mem_limit: 128m
     cpus: "0.5"
 
   cadvisor:
@@ -271,7 +266,7 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    mem_limit: 256m
+    mem_limit: 128m
     cpus: "0.5"
 
   kafka_exporter:
@@ -291,7 +286,7 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    mem_limit: 256m
+    mem_limit: 128m
     cpus: "0.5"
 
 networks:

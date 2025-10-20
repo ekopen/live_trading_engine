@@ -12,7 +12,7 @@ def portfolio_key_order_update(client, symbol, quantity_change, market_value_cha
             WHERE symbol = '{symbol}' AND strategy_name = '{strategy_name}'
         """)
     except Exception as e:
-        logger.exception(f"Error updating portfolio key table in ClickHouse: {e}")
+        logger.exception(f"Error updating portfolio key table in ClickHouse for {strategy_name} - {symbol}: {e}")
 
 def portfolio_monitoring(stop_event, frequency, symbol, symbol_raw, strategy_name, client):
     logger.info("Starting portfolio monitoring thread.")
@@ -32,6 +32,7 @@ def portfolio_monitoring(stop_event, frequency, symbol, symbol_raw, strategy_nam
                 SELECT cash_balance, symbol, quantity, market_value, strategy_name, portfolio_value
                 FROM portfolio_db_key
                 WHERE symbol = '{symbol}' AND strategy_name = '{strategy_name}'
+                LIMIT 1
             """).result_rows
 
             if rows:
@@ -49,7 +50,7 @@ def portfolio_monitoring(stop_event, frequency, symbol, symbol_raw, strategy_nam
         time.sleep(frequency)
 
     try:
-        logger.info("Portfolio monitoring shutting down.")
+        logger.info(f"Portfolio monitoring shutting down for {strategy_name} - {symbol}.")
     except Exception as e:
         logger.exception(f"Error during portfolio monitoring shutdown for {strategy_name} - {symbol}: {e}")
 
@@ -59,6 +60,7 @@ def get_cash_balance(client, strategy_name, symbol):
             SELECT cash_balance 
             FROM portfolio_db_key 
             WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
+            LIMIT 1
         """).result_rows
         cash_balance = rows[0][0]
         return cash_balance
@@ -71,6 +73,7 @@ def get_qty_balance(client, strategy_name, symbol):
             SELECT quantity 
             FROM portfolio_db_key 
             WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
+            LIMIT 1
         """).result_rows
         quantity = rows[0][0]
         return quantity
@@ -83,6 +86,7 @@ def get_pv_value(client, strategy_name, symbol):
             SELECT portfolio_value 
             FROM portfolio_db_key 
             WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
+            LIMIT 1
         """).result_rows
         portfolio_value = rows[0][0]
         return portfolio_value
@@ -95,6 +99,7 @@ def get_market_value(client, strategy_name, symbol):
             SELECT market_value 
             FROM portfolio_db_key 
             WHERE strategy_name = '{strategy_name}' AND symbol = '{symbol}'
+            LIMIT 1
         """).result_rows
         market_value = rows[0][0]
         return market_value

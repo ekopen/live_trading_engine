@@ -37,12 +37,13 @@ if __name__ == "__main__":
 
         for model in model_arr:
             logger.info(f"Registering jobs for {model.model_name_key}")
+
             schedule.every(model.retrain_interval).hours.do(model.create_feature_data)
             schedule.every(model.retrain_interval).hours.do(model.train_models)
 
             model.create_feature_data()
             model.train_models()
-            
+                    
         while not stop_event.is_set():
              schedule.run_pending()
              time.sleep(1)

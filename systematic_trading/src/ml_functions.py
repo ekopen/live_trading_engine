@@ -14,16 +14,24 @@ last_refresh_times = {}
 def get_production_data(client, symbol):
     try:
         df = client.query_df(f"""
-            SELECT minute, open as price
-            FROM minute_bars_final
-            WHERE symbol = '{symbol}'        
+            SELECT *
+            FROM (
+                SELECT
+                    minute,
+                    anyHeavyMerge(open)   AS price
+                FROM minute_bars
+                WHERE symbol = '{symbol}' AND minute >= now() - INTERVAL 2 HOUR
+                GROUP BY minute
+                ORDER BY minute DESC
+                LIMIT 120
+            ) sub
             ORDER BY minute ASC
-            LIMIT 120                      
         """)
         return df
     except Exception as e:
         logger.exception(f"Error fetching production data for {symbol}: {e}")
         return None
+
 
 def build_features(df):
     try:
@@ -82,7 +90,7 @@ def get_ml_model(s3_key, local_path, LSTM_flag):
 
         # otherwise, refresh
         logger.info(f"Downloading model {s3_key} from S3...")
-        s3.download_file(bucket_name, s3_key, local_path)
+        # s3.download_file(bucket_name, s3_key, local_path) #turning off for cost purposes
 
         if LSTM_flag:
             ml_model = load_model(local_path)

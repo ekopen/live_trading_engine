@@ -1,7 +1,7 @@
 # strategy_template.py
 #  contains a default class for all strategies
 
-import threading, logging, time, os, random
+import threading, logging, time, os, random, joblib
 import numpy as np
 from data import get_latest_price, clickhouse_client
 from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance, get_pv_value, update_status, get_market_value
@@ -61,7 +61,7 @@ class StrategyTemplate:
             if qty_owned == 0:
                 cash_balance = get_cash_balance(client, self.strategy_name, self.symbol)
 
-                qty = (cash_balance * self.allocation_pct) / current_price
+                qty = (cash_balance * self.allocation_pct) / current_price * .999999999 # leave a tiny buffer because of rounding glitches
 
                 execute_trade(client, "BUY", current_price, qty, self.strategy_name, self.symbol, self.symbol_raw)
                 logger.info(f"Initial BUY executed for {self.strategy_name} - {self.symbol}. Holding position now.")
@@ -80,12 +80,12 @@ class StrategyTemplate:
 
     def ml_strategy(self, client):
         logger.info(f"Beginning strategy signal generation for {self.strategy_name} - {self.symbol}.")
-        update_status(client, self.strategy_name, self.symbol, 'active')
         # because I am having trouble with the ml models getting stuck in a loop of same signal, adding a manual override to show activity
         last_signal = None
         signal_streak = 1
         try:
             while not self.stop_event.is_set():
+                update_status(client, self.strategy_name, self.symbol, 'active') #make sure status is active
                 # RESET LOGIC
                 now = time.time()
                 if now - self.last_reset > self.reset_interval:
@@ -106,7 +106,12 @@ class StrategyTemplate:
 
                 # GET MODEL
                 try:
-                    ml_model = get_ml_model(self.s3_key, self.local_path, self.LSTM_flag)
+                    #ml_model = get_ml_model(self.s3_key, self.local_path, self.LSTM_flag)
+                    if self.LSTM_flag:
+                        ml_model = load_model(self.local_path)
+                    else:
+                        ml_model = joblib.load(self.local_path)
+
                     if not self.LSTM_flag: # non LSTM case
                         probs = ml_model.predict_proba(feature_df_clean.values)[0]
                     else: # LSTM case
@@ -142,7 +147,7 @@ class StrategyTemplate:
                 last_signal = signal
                 # Force a change if stuck too long
                 if signal_streak >= self.max_streak:
-                    logger.info(f"Signal {signal} repeated {signal_streak} times — forcing change.")
+                    logger.info(f"Signal {signal} repeated {signal_streak} times for {self.strategy_name} - {self.symbol} — forcing change.")
                     if signal == "HOLD":
                         signal = random.choice(["BUY", "SELL"])
                     elif signal == "BUY":

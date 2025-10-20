@@ -15,7 +15,8 @@ This project consists of four primary modules:
 The system is containerized using Docker and currently deployed on a DigitalOcean server. Dashboards (available on my website) are built using Grafana for real-time monitoring and visualization.  
 
 ## Future Improvements  
-- Implement Kubernetes for automatic resource scaling and orchestration.  
+- Implement Kubernetes for automatic resource scaling and orchestration.
+- Expand the portfolio tracking module.
 - Consolidate configuration into a single master config file, with modular JSON files defining various ML models and trading strategies. This wil help turn them on/off.
 - Add unit tests.  
 - Add Grafana alerts for module health.

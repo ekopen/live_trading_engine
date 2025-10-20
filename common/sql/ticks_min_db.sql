@@ -1,4 +1,20 @@
--- stores aggregate states for each symbol and minute
+-- raw tick table to store incoming tick data
+CREATE TABLE IF NOT EXISTS ticks_db(
+    timestamp       DateTime64(3, 'UTC'),
+    timestamp_ms    Int64,
+    symbol          String,
+    price           Float64,
+    volume          Float64,
+    received_at     DateTime64(3, 'UTC'),
+    insert_time     DateTime64(3, 'UTC') DEFAULT now64(3)
+) 
+ENGINE = MergeTree()
+PARTITION BY toYYYYMMDD(timestamp)
+ORDER BY timestamp_ms
+TTL toDateTime(timestamp) + INTERVAL 30 DAY DELETE
+
+-- Stores aggregated bar data (1-minute resolution) for each symbol.
+-- Each column holds an aggregate function state, allowing rollups and merges.
 CREATE TABLE minute_bars
 (
     minute DateTime,
@@ -13,9 +29,10 @@ CREATE TABLE minute_bars
 ENGINE = AggregatingMergeTree()
 PARTITION BY toYYYYMMDD(minute)
 ORDER BY (symbol, minute)
-TTL minute + INTERVAL 9 DAY DELETE;
+TTL minute + INTERVAL 30 DAY DELETE;
 
--- pushes partially aggreate states into minute_bars
+-- Materialized view that aggregates raw tick data into 1-minute bars.
+-- The aggregated states are written directly into minute_bars.
 CREATE MATERIALIZED VIEW ticks_to_minute
 TO minute_bars
 AS
@@ -29,18 +46,4 @@ SELECT
     avgState(price)      AS avg,
     sumState(volume)     AS volume
 FROM ticks_db
-GROUP BY symbol, minute;
-
--- minute granular final view
-CREATE VIEW minute_bars_final AS
-SELECT
-    minute,
-    symbol,
-    anyHeavyMerge(open)   AS open,
-    maxMerge(high)        AS high,
-    minMerge(low)         AS low,
-    anyLastMerge(close)   AS close,
-    avgMerge(avg)         AS avg,
-    sumMerge(volume)      AS volume
-FROM minute_bars
 GROUP BY symbol, minute;

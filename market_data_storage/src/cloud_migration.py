@@ -36,7 +36,7 @@ def migration_to_cloud(stop_event, clickhouse_duration, archive_frequency):
             old_ticks_df.to_parquet(latest_file, index=False, engine="pyarrow", row_group_size=100000)
             s3_key = "ticks_data"
             try:
-                s3.upload_file(latest_file, BUCKET_NAME, s3_key)
+                # s3.upload_file(latest_file, BUCKET_NAME, s3_key) # turned off for cost purposes
                 logger.info(f"Uploaded {latest_file} to S3 at {s3_key}")
             except Exception:
                 logger.exception(f"Error uploading to S3")

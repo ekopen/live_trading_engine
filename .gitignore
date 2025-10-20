@@ -26,6 +26,8 @@ common/logs/*
 # Old or Backup Files
 # -------------------------------
 /common/old/
+common/models/*
+!/common/models/*/models/.gitkeep
 
 # -------------------------------
 # Data & Models

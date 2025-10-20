@@ -88,9 +88,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.1",
           "queryType": "table",
-          "rawSql": "SELECT\r\n    minute,\r\n    open\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nORDER BY minute DESC\r\nLIMIT 1",
+          "rawSql": "SELECT\r\n    minute,\r\n    anyHeavyMerge(open) AS open\r\nFROM minute_bars\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nGROUP BY minute\r\nORDER BY minute DESC\r\nLIMIT 1\r\n",
           "refId": "A"
         }
       ],
@@ -199,9 +199,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.1",
           "queryType": "table",
-          "rawSql": "SELECT\r\n    minute,\r\n    open, \r\n    symbol\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nORDER BY minute DESC",
+          "rawSql": "SELECT\r\n    minute,\r\n    anyHeavyMerge(open) AS open,\r\n    symbol\r\nFROM minute_bars\r\nWHERE $__timeFilter(minute)\r\n  AND symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nGROUP BY symbol, minute\r\nORDER BY minute DESC\r\n",
           "refId": "A"
         }
       ],
@@ -278,9 +278,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.1",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  SUM(volume) AS total_vol\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\n",
+          "rawSql": "SELECT\r\n    sumMerge(volume) AS total_vol\r\nFROM minute_bars\r\nWHERE $__timeFilter(minute)\r\n  AND symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\n",
           "refId": "A"
         }
       ],
@@ -357,9 +357,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.1",
           "queryType": "table",
-          "rawSql": "SELECT\r\n  SUM(volume * open) AS total_vol_usd\r\nFROM minute_bars_final\r\nWHERE $__timeFilter(minute) AND symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\n\r\n",
+          "rawSql": "SELECT\r\n    sum(v * o) AS total_vol_usd\r\nFROM\r\n(\r\n    SELECT\r\n        minute,\r\n        sumMerge(volume) AS v,\r\n        anyHeavyMerge(open) AS o\r\n    FROM minute_bars\r\n    WHERE $__timeFilter(minute)\r\n      AND symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\n    GROUP BY minute\r\n) sub\r\n",
           "refId": "A"
         }
       ],
@@ -467,9 +467,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.10.2",
+          "pluginVersion": "4.11.1",
           "queryType": "table",
-          "rawSql": "SELECT\r\n    minute,\r\n    volume\r\nFROM minute_bars_final\r\nWHERE symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nORDER BY minute DESC",
+          "rawSql": "SELECT\r\n    minute,\r\n    sumMerge(volume) AS volume,\r\n    symbol\r\nFROM minute_bars\r\nWHERE $__timeFilter(minute)\r\n  AND symbol = concat('BINANCE:', '${Ticker}', 'USDT')\r\nGROUP BY symbol, minute\r\nORDER BY minute DESC\r\n",
           "refId": "A"
         }
       ],
@@ -506,11 +506,11 @@
           "type": "grafana-clickhouse-datasource",
           "uid": "af0a2qlhij6yoa"
         },
-        "definition": "SELECT DISTINCT symbol\nFROM minute_bars_final\nORDER BY symbol",
+        "definition": "SELECT DISTINCT symbol\nFROM ticks_to_minute\nORDER BY symbol",
         "description": "",
         "name": "Ticker",
         "options": [],
-        "query": "SELECT DISTINCT symbol\nFROM minute_bars_final\nORDER BY symbol",
+        "query": "SELECT DISTINCT symbol\nFROM ticks_to_minute\nORDER BY symbol",
         "refresh": 1,
         "regex": "/BINANCE:(.*)USDT/",
         "type": "query"
@@ -529,5 +529,5 @@
   "timezone": "browser",
   "title": "MARKET DATA",
   "uid": "37fb53d0-bf32-4e50-b46e-3bf1a868e61e",
-  "version": 1
+  "version": 4
 }

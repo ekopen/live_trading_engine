@@ -4,8 +4,7 @@
 from config import FEATURE_DIR, MODEL_DIR
 from setup import clickhouse_client
 from features import get_data, build_features, create_labels
-from training import load_dataset, train_and_eval, upload_to_cloud
-from tensorflow.keras.models import save_model
+from training import load_dataset, train_and_eval, save_trained_model
 from tensorflow.keras import backend as K
 import gc
 import joblib
@@ -43,7 +42,7 @@ class ML_Model_Template:
             client = clickhouse_client()
             df = get_data(client, self.symbol_raw)
             df_features = build_features(df)
-            df_labels, counts = create_labels(df = df_features, horizon=60, buy_q=.65, sell_q=.35) # this could be modularized
+            df_labels, counts = create_labels(df = df_features, horizon=60, buy_q=.7, sell_q=.3) # this could be modularized
             df_labels.to_parquet(self.feature_dir, index=False)
             logger.info(f"Label distribution for {self.model_name_key} (SELL=0, HOLD=1, BUY=2): {counts.to_dict()}")
             logger.info(f"Finished creating feature data for {self.model_name_key}.")
@@ -60,11 +59,7 @@ class ML_Model_Template:
                 logger.warning(f"Not enough data to train {self.model_name_key}. Needed 1440 rows, got {len(X)}. Skipping training.")
                 return
             train_and_eval(X, y, self.model,  self.model_name_key, self.model_description, client, self.model_dir, self.retrain_interval, self.model_save_type)
-            if self.model_save_type == 'h5':
-                self.model.model_.save(self.model_dir)
-            elif self.model_save_type == 'pkl':
-                joblib.dump(self.model, self.model_dir)
-            upload_to_cloud(self.model_dir)
+            save_trained_model(self.model, self.model_dir, self.model_save_type)
             logger.info(f"Finished training model for {self.model_name_key}.")
         except Exception as e:
             logger.exception(f"Model training failed for {self.model_name_key}: {e}")
