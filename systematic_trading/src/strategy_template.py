@@ -3,6 +3,7 @@
 
 import threading, logging, time, os, random, joblib
 import numpy as np
+from tensorflow.keras.models import load_model
 from data import get_latest_price, clickhouse_client
 from portfolio import portfolio_monitoring, get_cash_balance, get_qty_balance, get_pv_value, update_status, get_market_value
 from ml_functions import get_production_data, build_features, get_ml_model

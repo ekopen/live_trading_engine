@@ -26,6 +26,4 @@ Continuously implements and runs machine learning–based trading algorithms, re
 ## Known Isues
 - This code is a bit sloppy. When I have time, I need to organize it better to make more sense at first glance.
 - Clickhouse is not optimal for the portfolio key and should be replaced with Postgres
-- LSTM might not be correctly predicting trading decisions
-
 
