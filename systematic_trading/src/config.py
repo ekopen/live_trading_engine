@@ -12,7 +12,7 @@ MAX_DRAWDOWN = .5 #maximum amount of portfolio value willing to lose before paus
 MAX_ALLOCATION = .5 #maxmimum amount of value per trade compared to portfolio value willing to make
 MAX_SHORT = 200000 #max short value of any portfolio
 
-MONITORING_FREQUENCY = 60 #how often to record pf data to the time series
+MONITORING_FREQUENCY = 300 #how often to record pf data to the time series
 
 KAFKA_BOOTSTRAP_SERVER="kafka:19092"
 

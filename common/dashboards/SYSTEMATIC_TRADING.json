@@ -29,6 +29,127 @@
       },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 3,
+            "pointSize": 9,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.metric}",
+          "fieldMinMax": false,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 9,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "builderOptions": {
+            "columns": [],
+            "database": "default",
+            "limit": 1000,
+            "meta": {},
+            "mode": "list",
+            "queryType": "table",
+            "table": "execution_db"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "cezo3kwc3wjy8c"
+          },
+          "editorType": "sql",
+          "format": 0,
+          "meta": {
+            "builderOptions": {
+              "columns": [],
+              "database": "default",
+              "limit": 1000,
+              "meta": {},
+              "mode": "list",
+              "queryType": "table",
+              "table": "execution_db"
+            }
+          },
+          "pluginVersion": "4.11.2",
+          "queryType": "timeseries",
+          "rawSql": "SELECT\r\n    time_bucket AS time,\r\n    category AS metric,\r\n    SUM(avg_value) * 5 as portfolio_value\r\nFROM\r\n(\r\n    SELECT\r\n        toStartOfInterval(time, INTERVAL 30 MINUTE) AS time_bucket,\r\n        CASE\r\n            WHEN startsWith(strategy_name, 'Long') THEN 'Long Only'\r\n            ELSE 'ML Strategies'\r\n        END AS category,\r\n        AVG(portfolio_value) AS avg_value\r\n    FROM portfolio_db_ts\r\n    WHERE $__timeFilter(time)\r\n    GROUP BY\r\n        time_bucket,\r\n        category\r\n)\r\nGROUP BY\r\n    time_bucket,\r\n    category\r\nORDER BY\r\n    time_bucket;\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Porfolio Performance Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "af0a2qlhij6yoa"
+      },
+      "fieldConfig": {
+        "defaults": {
           "custom": {
             "align": "auto",
             "cellOptions": {
@@ -156,9 +277,9 @@
         ]
       },
       "gridPos": {
-        "h": 12,
-        "w": 10,
-        "x": 0,
+        "h": 4,
+        "w": 15,
+        "x": 9,
         "y": 0
       },
       "id": 1,
@@ -172,7 +293,7 @@
           }
         ]
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -191,133 +312,14 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.11.1",
+          "pluginVersion": "4.11.2",
           "queryType": "table",
-          "rawSql": "SELECT strategy_name as Strategy, symbol as Symbol, quantity as Quantity, market_value as Market_Position, cash_balance as Cash_Position, portfolio_value as Net_Value, status as Status\r\nFROM portfolio_db_key\r\nORDER BY strategy_name\r\n\r\n",
+          "rawSql": "SELECT\r\n    CASE\r\n        WHEN startsWith(strategy_name, 'Long') THEN 'Long Only'\r\n        ELSE 'ML Strategies'\r\n    END AS Strategy_Group,\r\n    SUM(market_value) AS Total_Market_Position,\r\n    SUM(cash_balance) AS Total_Cash_Position,\r\n    SUM(portfolio_value) AS Total_Net_Value\r\nFROM portfolio_db_key\r\nGROUP BY\r\n    Strategy_Group\r\nORDER BY\r\n    Strategy_Group;\r\n",
           "refId": "A"
         }
       ],
-      "title": "Portfolio",
+      "title": "Portfolio Overview",
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "af0a2qlhij6yoa"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineStyle": {
-              "fill": "solid"
-            },
-            "lineWidth": 2,
-            "pointSize": 9,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "currencyUSD"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 24,
-        "w": 14,
-        "x": 10,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.2.0",
-      "targets": [
-        {
-          "builderOptions": {
-            "columns": [],
-            "database": "default",
-            "limit": 1000,
-            "meta": {},
-            "mode": "list",
-            "queryType": "table",
-            "table": "execution_db"
-          },
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "cezo3kwc3wjy8c"
-          },
-          "editorType": "sql",
-          "format": 0,
-          "meta": {
-            "builderOptions": {
-              "columns": [],
-              "database": "default",
-              "limit": 1000,
-              "meta": {},
-              "mode": "list",
-              "queryType": "table",
-              "table": "execution_db"
-            }
-          },
-          "pluginVersion": "4.11.1",
-          "queryType": "timeseries",
-          "rawSql": "SELECT\r\n  time,\r\n  portfolio_value AS \" \",\r\n  CONCAT(strategy_name, ' ', symbol) AS metric\r\nFROM portfolio_db_ts\r\nWHERE $__timeFilter(time)\r\nORDER BY time",
-          "refId": "A"
-        }
-      ],
-      "title": "Porfolio Performance Over Time",
-      "type": "timeseries"
     },
     {
       "datasource": {
@@ -516,10 +518,10 @@
         ]
       },
       "gridPos": {
-        "h": 12,
-        "w": 10,
-        "x": 0,
-        "y": 12
+        "h": 9,
+        "w": 15,
+        "x": 9,
+        "y": 4
       },
       "id": 3,
       "options": {
@@ -532,7 +534,7 @@
           }
         ]
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorType": "sql",
@@ -547,9 +549,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.11.1",
+          "pluginVersion": "4.11.2",
           "queryType": "table",
-          "rawSql": "SELECT time, strategy_name, symbol, signal, quantity, executed_price * quantity as trade_value, approval_status, approval_comment\r\nFROM execution_db\r\nORDER BY time DESC\r\nLIMIT 10\r\n",
+          "rawSql": "SELECT time, strategy_name, symbol, signal, quantity, executed_price * quantity as trade_value, approval_status, approval_comment\r\nFROM execution_db\r\nORDER BY time DESC\r\nLIMIT 7\r\n",
           "refId": "A"
         }
       ],
@@ -568,7 +570,6 @@
     "to": "now"
   },
   "timepicker": {
-    "hidden": true,
     "refresh_intervals": [
       "5s"
     ]
@@ -576,5 +577,5 @@
   "timezone": "browser",
   "title": "SYSTEMATIC TRADING",
   "uid": "ad5pdrs",
-  "version": 7
+  "version": 9
 }

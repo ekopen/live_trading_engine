@@ -273,7 +273,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -292,9 +292,9 @@
               "table": ""
             }
           },
-          "pluginVersion": "4.11.0",
+          "pluginVersion": "4.11.2",
           "queryType": "table",
-          "rawSql": "SELECT model_name AS Model_Name,\r\n       model_description AS Model_Description,\r\n       (trained_at + INTERVAL retrain_interval HOUR) - now() as Time_Until_Next_Retrain,\r\n       train_accuracy AS Train_Accuracy,\r\n       test_accuracy AS Test_Accuracy,\r\n       precision AS Precision,\r\n       recall AS Recall,\r\n       f1 AS F1\r\nFROM (\r\n    SELECT *,\r\n           ROW_NUMBER() OVER (PARTITION BY model_name ORDER BY Time_Until_Next_Retrain DESC) AS rn\r\n    FROM model_runs\r\n) ranked\r\nWHERE rn = 1\r\nORDER BY Time_Until_Next_Retrain ASC, Model_Name;\r\n",
+          "rawSql": "SELECT substring(model_name, 1, position(model_name, '-ETH') - 1) AS Model_Name,\r\n       model_description AS Model_Description,\r\n       (trained_at + INTERVAL retrain_interval HOUR) - now() as Time_Until_Next_Retrain,\r\n       train_accuracy AS Train_Accuracy,\r\n       test_accuracy AS Test_Accuracy,\r\n       precision AS Precision,\r\n       recall AS Recall,\r\n       f1 AS F1\r\nFROM (\r\n    SELECT *,\r\n           ROW_NUMBER() OVER (PARTITION BY model_name ORDER BY Time_Until_Next_Retrain DESC) AS rn\r\n    FROM model_runs\r\n) ranked\r\nWHERE rn = 1\r\nORDER BY Time_Until_Next_Retrain ASC, Model_Name;\r\n",
           "refId": "A"
         }
       ],
@@ -321,5 +321,5 @@
   "timezone": "browser",
   "title": "ML STRATEGIES",
   "uid": "adgkt7m",
-  "version": 3
+  "version": 4
 }
