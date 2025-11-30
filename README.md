@@ -1,9 +1,9 @@
-# Live Trading Engine  
+# Live Trading Platform 
 
 Visit [www.erickopen.com](http://www.erickopen.com) to view comprehensive documentation.  
 
 ## Overview  
-This repository contains a fully automated trading engine designed to operate 24/7. It continuously ingests market data, stores that data, retrains machine learning models on a frequent basis, and uses those models to make trading decisions. This project highlights my ability to design and implement robust trading infrastructure.
+This repository contains a fully automated trading platform designed to operate 24/7. It continuously ingests market data, stores that data, retrains machine learning models on a frequent basis, and uses those models to make trading decisions. This project highlights my ability to design and implement robust trading infrastructure.
 
 ## Details  
 This project consists of four primary modules:  
