@@ -1,6 +1,6 @@
 # Market Data Storage  
 
-This is part of my overarching **Live Trading Engine** project. Visit [www.erickopen.com](http://www.erickopen.com) to see my projects running live and to view comprehensive documentation.  
+This is part of my overarching **Live Trading Platform** project. Visit [www.erickopen.com](http://www.erickopen.com) to view comprehensive documentation.  
 
 ## Overview  
 Captures market data from a Kafka consumer and stores it in a **ClickHouse** database, with older data archived to **AWS**. Downstream applications use this data to train and power trading algorithms.  
