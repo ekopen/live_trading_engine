@@ -1,6 +1,6 @@
 # Market Data Stream  
 
-This is part of my overarching **Live Trading Engine** project. Visit [www.erickopen.com](http://www.erickopen.com) to see my projects running live and to view comprehensive documentation.  
+This is part of my overarching **Live Trading Platform** project. Visit [www.erickopen.com](http://www.erickopen.com) to view comprehensive documentation.  
 
 ## Overview  
 Configures a Kafka producer that captures real-time market data from a WebSocket. The producer publishes data to a Kafka topic, which downstream consumers use to update market data tables and retrieve live prices.  
@@ -18,3 +18,4 @@ Configures a Kafka producer that captures real-time market data from a WebSocket
 
 ## Known Issues  
 - Reconfigure Docker so dependent services shut down gracefully if the stream becomes unavailable.  
+
